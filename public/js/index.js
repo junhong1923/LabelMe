@@ -113,7 +113,7 @@ const setPanEvents = (canvas) => {
       rect.set({ top: Math.min(event.pointer.y, lastY) });
       rect.setCoords();
 
-      for (let i = 0; i < canvas.getObjects().length - 1; i++) {
+      for (let i = 0; i < canvas.getObjects().length; i++) {
         if (canvas.getObjects()[i]._element === undefined || canvas.getObjects()[i].stroke === "rgb(0, 0, 0)") {
           canvas.remove(canvas.getObjects()[i]);
         }
@@ -177,14 +177,6 @@ const groupObjects = (canvas, group, shouldGroup) => {
   }
 };
 
-const reader = new FileReader();
-const imgAdded = (e) => {
-  console.log(e);
-  const inputElem = document.getElementById("myImg");
-  file = inputElem.files[0];
-  reader.readAsDataURL(file);
-};
-
 const canvas = initCanvas("canvas");
 // const svgState = {};
 let mousePressed = false;
@@ -202,9 +194,20 @@ const modes = {
 setPanEvents(canvas);
 
 const inputFile = document.getElementById("myImg");
+const reader = new FileReader();
+const imgAdded = (e) => { // Upload Image
+  console.log(e);
+
+  // // upload image to backend after canvas render
+  // uploadOriImageToBackend(e);
+
+  file = inputFile.files[0];
+  reader.readAsDataURL(file);
+};
+
 inputFile.addEventListener("change", imgAdded);
 
-reader.addEventListener("load", () => {
+reader.addEventListener("load", () => { // Loading Image
   fabric.Image.fromURL(reader.result, img => {
     img.set({
       left: (canvas.width - img.width) / 2,
@@ -215,12 +218,81 @@ reader.addEventListener("load", () => {
   });
 });
 
+// push upload image to backend or S3
+const uploadOriImageToBackend = (e) => {
+  e.preventDefault();
+  const FORM = document.forms.namedItem("uploadImage");
+  console.log(FORM);
+  const formData = new FormData(FORM);
+  // formData.append("OriginImage", FORM);
+  const xhr = new XMLHttpRequest();
+
+  xhr.open("POST", "/api/1.0/label/coordinates");
+  // xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onreadystatechange = () => {
+    if (xhr.readyState === 4) {
+      console.log(xhr.response);
+    };
+  };
+  console.log(Array.from(formData));
+  xhr.send({
+    user: "test1",
+    formData: formData
+  });
+};
+
+// try upload in another way
+window.onload = function () {
+  const form = document.querySelector("form");
+  form.onsubmit = submitted.bind(form);
+};
+
+function submitted (event) {
+  event.preventDefault();
+
+  const FORM = document.forms.namedItem("uploadImage");
+
+  const formData = new FormData(FORM);
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/1.0/label/coordinates");
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      console.log(xhr.response);
+    }
+  };
+  xhr.send(formData);
+}
+
+const commitLabel = (canvas) => {
+  // console.log(canvas.getObjects());
+  // console.log(canvas.toDataURL("image/jpeg"));
+  // console.log(canvas.toJSON());
+  canvasJSON = canvas.toJSON();
+  let imgSrc;
+  canvasJSON.objects.forEach((arr) => {
+    if (arr.type === "image") {
+      imgSrc = arr.src;
+    }
+  });
+  console.log(imgSrc);
+
+  let boundCoordinates;
+  canvasJSON.objects.forEach((arr) => {
+    if (arr.type === "rect") {
+      boundCoordinates = { x: arr.left, y: arr.top, width: arr.width, height: arr.height };
+    }
+  });
+  console.log(boundCoordinates);
+};
+
 function saveFile () {
   const link = document.getElementById("download");
   link.download = `labeled_${file.name}`; // name of the download file
   link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
   link.click();
   const currState = canvas.toJSON();
+  console.log("currState of saving:");
   console.log(currState);
 }
 

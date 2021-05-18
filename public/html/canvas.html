@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Canvas</title>
+    <title>LabelMe</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
@@ -13,12 +13,19 @@
 </head>
 <body>
     <div class="container pt-4 bg-dark text-white my-3 border">
-        <h1>My First Bootstrap Page</h1>
-        <p>This is some text.</p> 
+        <h1>Label ME</h1>
+        <p>1. Choose your image and then upload it.</p>
+        <p>2. Use annotation tools to label!</p>
+        <p>3. Make sure to commit each steps to save your labeling.</p>
+        <p>4. Download the labeled image to get the result!</p>
     </div>
 
     <div >
-        <input id="myImg" type="file" class="btn btn-secondary active" accept="image/*"/>
+        <form method="post" enctype="multipart/form-data" name="uploadImage">
+            <input id="myImg" type="file" name="OriImage" class="btn btn-secondary active" accept="image/*"/>
+            <input type='submit', value='上傳照片', style='margin:10px;'>
+        </form>
+        <hr>
         <!-- <input type="file" onchange="loadFile(this);" class="btn btn-secondary active" /> -->
         <div class="btn-group">
             <button id="pan" class="btn btn-secondary" onclick="toggleMode(this, modes.pan)">Toggle Pan</button>
@@ -44,7 +51,7 @@
             <button class="btn btn-secondary" onclick="groupObjects(canvas, group, false)">Ungroup</button>
         </div>
 
-        <hr>
+        
 
         <div class="btn-group">
             <button id="zoomInBtn" class="btn btn-secondary">Zoom in</button>
@@ -53,12 +60,13 @@
         </div>
 
         <hr>
-        <button onclick="saveFile();" class="btn btn-secondary">儲存檔案</button>
-        <a id="download"></a>
         <!-- <button onclick="invertColor();" class="btn btn-secondary">Grayscale</button> -->
         <button onclick="undo();" class="btn btn-secondary">Undo</button>
         <button onclick="clearCanvas(canvas);" class="btn btn-secondary">Clear all</button> <!-- clearPad(); -->
         <button onclick="restoreCanvas(canvas, svgState);" class="btn btn-secondary">Restore</button>
+        <button onclick="commitLabel(canvas)" class="btn btn-secondary">Save & Commit</button>
+        <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
+        <a id="download"></a>
     </div>
 
     <canvas id="canvas" width="800" height="600" style='border:1px solid #000000;'></canvas>
