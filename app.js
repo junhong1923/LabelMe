@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use("/api/" + process.env.API_VERSION,
   [
-  // require("./server/routes/")
+    require("./server/routes/user_route"),
     require("./server/routes/label_route")
   ]
 );
@@ -29,10 +29,10 @@ app.use((err, res, next) => {
 });
 
 // Error handling
-// app.use((err, res) => {
-//   console.log(err);
-//   res.statuts(500).send("Internal Server Error");
-// });
+app.use((err, res) => {
+  console.log(err);
+  res.statuts(500).send("Error handling: Internal Server Error");
+});
 
 app.listen(port, () => {
   console.log(`The application is running on port ${port}`);
