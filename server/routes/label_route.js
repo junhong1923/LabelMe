@@ -12,7 +12,7 @@ const {
 router.route("/label/ori-image")
   .post(oriUpload, getOriImage);
 
-router.route("/label/coordinates")
+router.route("/label/coordinates") // need to apply auth middleware in this route
   .post(getCoordinates);
 
 module.exports = router;
