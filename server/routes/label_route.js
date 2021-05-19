@@ -5,16 +5,14 @@ const { upload, wrapAsync } = require("../../util/util");
 const oriUpload = upload.single("OriImage");
 
 const {
-  coordinates
+  getOriImage,
+  getCoordinates
 } = require("../controllers/label_controller");
 
-router.route("/label/coordinates")
-  .post(oriUpload, coordinates);
+router.route("/label/ori-image")
+  .post(oriUpload, getOriImage);
 
-// router.post("/label/coordinates", oriUpload, (req, res) => {
-//   console.log(req);
-//   //   console.log(req.files);
-//   res.send("good");
-// });
+router.route("/label/coordinates")
+  .post(getCoordinates);
 
 module.exports = router;
