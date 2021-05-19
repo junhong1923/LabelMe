@@ -6,10 +6,14 @@ const {
 } = require("../../util/util");
 
 const {
-  signUp
+  signUp,
+  signIn
 } = require("../controllers/user_controller");
 
 router.route("/user/signup")
   .post(wrapAsync(signUp));
+
+router.route("/user/signin")
+  .post(wrapAsync(signIn));
 
 module.exports = router;

@@ -53,7 +53,72 @@ const signUp = (name, roleId, email, password) => {
   });
 };
 
+const nativeSignIn = async (email, password) => {
+  return new Promise((resolve, reject) => {
+    try {
+      // 1. check email exists or not
+      pool.query("SELECT * FROM user WHERE email = ?", [email], (err, result) => {
+        if (err) throw err;
+        // console.log(result);
+        if (result.length === 0) {
+          resolve({ error: "You don't have an account, please signup.", status: 403 });
+        }
+        // 2. verify pwd, update login time, and then genJWT for this signin
+        if (result[0].password === getHashed(password)) {
+          const loginAt = new Date();
+          updateLoginTime(loginAt, result[0].id);
+
+          result[0].login_at = loginAt;
+          result[0].access_token = getJWToken({ provider: result[0].provider, name: result[0].name, email: result[0].email });
+          result[0].access_expired = TOKEN_EXPIRE;
+          resolve({ user: result[0] });
+        } else {
+          resolve({ error: "Wrong password, please Login again.", status: 403 });
+        }
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
+const updateLoginTime = (loginAt, id) => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) reject(err);
+      connection.beginTransaction(function (err) {
+        if (err) { // Transaction Error (Rollback and release connection)
+          connection.rollback(function () {
+            connection.release();
+          });
+        } else {
+          connection.query("UPDATE user SET login_at = ? WHERE id = ?", [loginAt, id], function (err, result) {
+            if (err) { // Query Error (Rollback and release connection)
+              connection.rollback(function () {
+                connection.release();
+              });
+            } else {
+              connection.commit(function (err) {
+                if (err) {
+                  connection.rollback(function () {
+                    connection.release();
+                  });
+                } else {
+                  // Success
+                  connection.release();
+                  resolve(result);
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+  });
+};
+
 module.exports = {
   USER_ROLE,
-  signUp
+  signUp,
+  nativeSignIn
 };

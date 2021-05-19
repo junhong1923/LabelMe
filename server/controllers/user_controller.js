@@ -45,6 +45,63 @@ const signUp = async (req, res) => {
   });
 };
 
+const nativeSignIn = async (email, password) => {
+  if (!email || !password) {
+    return { error: "Request Error: email and password are required.", status: 400 };
+  }
+
+  try {
+    return await User.nativeSignIn(email, password);
+  } catch (error) {
+    return { error };
+  }
+};
+
+const signIn = async (req, res) => {
+  const data = req.body;
+
+  let result;
+  switch (data.provider) {
+    case "native":
+      result = await nativeSignIn(data.email, data.password);
+      break;
+    // case "facebook":
+    //   result = await facebookSignIn(data.access_token);
+    //   break;
+    default:
+      // if this expression doesn't match any condition case
+      result = { error: "Wrong Request", status: 400 };
+  }
+
+  if (result.error) {
+    // const statusCode = result.status ? result.status : 403;
+    res.status(result.status).send({ error: result.error });
+    return;
+  }
+  console.log(result);
+  const user = result.user;
+  if (!user) {
+    res.status(500).send({ error: "Database Query Error" });
+    return;
+  }
+
+  res.status(200).send({
+    data: {
+      access_token: user.access_token,
+      access_expired: user.access_expired,
+      login_at: user.login_at,
+      user: {
+        id: user.id,
+        provider: user.provider,
+        name: user.name,
+        email: user.email,
+        picture: user.picture
+      }
+    }
+  });
+};
+
 module.exports = {
-  signUp
+  signUp,
+  signIn
 };
