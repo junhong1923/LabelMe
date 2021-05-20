@@ -19,7 +19,7 @@ const getJWToken = (payload) => {
     provider: payload.provider,
     name: payload.name,
     email: payload.email
-  }, TOKEN_SECRET, { algorithm: "HS256", expiresIn: TOKEN_EXPIRE });
+  }, TOKEN_SECRET, { algorithm: "HS256", expiresIn: `${TOKEN_EXPIRE}s` });
   return accessToken;
 };
 

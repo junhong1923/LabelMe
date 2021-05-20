@@ -232,7 +232,7 @@ function submitted (event) {
   const formData = new FormData(FORM);
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/1.0/label/ori-image");
-
+  xhr.setRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm92aWRlciI6Im5hdGl2ZSIsIm5hbWUiOiJ0ZXN0IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTYyMTUxNDA3NCwiZXhwIjoxNjIxODc0MDc0fQ.KAlyW_6wsDW9g9jd9_-myB52Ho8lOA3xJW5tIqF7FiU");
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       console.log(xhr.response);
