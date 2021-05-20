@@ -30,20 +30,31 @@ const signUp = async (req, res) => {
     return;
   }
 
-  res.status(200).send({
+  res.status(200).json({
     data: {
-      access_token: user.access_token,
-      access_expired: user.access_expired,
-      login_at: user.login_at,
+      access_token: result.access_token,
+      access_expired: result.access_expired,
       user: {
-        id: user.id,
-        provider: user.provider,
-        name: user.name,
-        email: user.email,
-        picture: user.picture
+        id: result.id,
+        provider: result.provider,
+        name: result.name,
+        email: result.email,
+        picture: result.picture
       }
     }
   });
+};
+
+const nativeSignIn = async (email, password) => {
+  if (!email || !password) {
+    return { error: "Request Error: email and password are required.", status: 400 };
+  }
+
+  try {
+    return await User.nativeSignIn(email, password);
+  } catch (error) {
+    return { error };
+  }
 };
 
 const signIn = async (req, res) => {
@@ -54,19 +65,20 @@ const signIn = async (req, res) => {
     case "native":
       result = await nativeSignIn(data.email, data.password);
       break;
-    case "facebook":
-      result = await facebookSignIn(data.access_token);
-      break;
+    // case "facebook":
+    //   result = await facebookSignIn(data.access_token);
+    //   break;
     default:
-      result = { error: "Wrong Request" };
+      // if this expression doesn't match any condition case
+      result = { error: "Wrong Request", status: 400 };
   }
 
   if (result.error) {
-    const status_code = result.status ? result.status : 403;
-    res.status(status_code).send({ error: result.error });
+    // const statusCode = result.status ? result.status : 403;
+    res.status(result.status).send({ error: result.error });
     return;
   }
-
+  console.log(result);
   const user = result.user;
   if (!user) {
     res.status(500).send({ error: "Database Query Error" });
@@ -90,7 +102,7 @@ const signIn = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
-  res.status(200).send({
+  res.status(200).json({
     data: {
       provider: req.user.provider,
       name: req.user.name,

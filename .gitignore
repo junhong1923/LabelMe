@@ -2,4 +2,5 @@ node_modules
 .DS_Store
 .env
 public/images/
+public/assets/
 public/js/canvas.js

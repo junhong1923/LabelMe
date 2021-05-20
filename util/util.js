@@ -1,6 +1,9 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const User = require("../server/models/user_model");
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -31,7 +34,41 @@ const wrapAsync = (fn) => {
   };
 };
 
+const authentication = (roleId) => {
+  return async function (req, res, next) {
+    // Returns the specified HTTP request header field
+    let accessToken = req.get("Authorization");
+    if (!accessToken) {
+      res.status(401).send({ error: "Unauthorized: no token" });
+      return;
+    }
+
+    accessToken = accessToken.replace("Bearer ", "");
+    if (accessToken === "null") {
+      res.status(401).send({ error: "Unauthorized: no token" });
+    }
+
+    try {
+      const user = jwt.verify(accessToken, process.env.TOKEN_SECRET);
+      req.user = user;
+      const userData = await User.getUserData(user.email);
+      if (userData) {
+        // req.user.id = userData.id;
+        // req.user.role_id = userData.role_id;
+        req.user.picture = userData.picture;
+        next();
+      } else {
+        res.status(403).send({ error: "Cannot find your email account." });
+      }
+    } catch (error) {
+      // console.log(error);
+      res.status(403).send({ error: "Forbidden: TokenExpiredError" });
+    }
+  };
+};
+
 module.exports = {
   upload,
-  wrapAsync
+  wrapAsync,
+  authentication
 };

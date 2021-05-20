@@ -218,30 +218,7 @@ reader.addEventListener("load", () => { // Loading Image
   });
 });
 
-// push upload image to backend or S3
-const uploadOriImageToBackend = (e) => {
-  e.preventDefault();
-  const FORM = document.forms.namedItem("uploadImage");
-  console.log(FORM);
-  const formData = new FormData(FORM);
-  // formData.append("OriginImage", FORM);
-  const xhr = new XMLHttpRequest();
-
-  xhr.open("POST", "/api/1.0/label/coordinates");
-  // xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4) {
-      console.log(xhr.response);
-    };
-  };
-  console.log(Array.from(formData));
-  xhr.send({
-    user: "test1",
-    formData: formData
-  });
-};
-
-// try upload in another way
+// Upload Original Image
 window.onload = function () {
   const form = document.querySelector("form");
   form.onsubmit = submitted.bind(form);
@@ -254,7 +231,7 @@ function submitted (event) {
 
   const formData = new FormData(FORM);
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/1.0/label/coordinates");
+  xhr.open("POST", "/api/1.0/label/ori-image");
 
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
@@ -266,24 +243,48 @@ function submitted (event) {
 
 const commitLabel = (canvas) => {
   // console.log(canvas.getObjects());
-  // console.log(canvas.toDataURL("image/jpeg"));
+  // console.log(canvas.toDataURL("image/jpeg")); // base64
   // console.log(canvas.toJSON());
   canvasJSON = canvas.toJSON();
-  let imgSrc;
-  canvasJSON.objects.forEach((arr) => {
-    if (arr.type === "image") {
-      imgSrc = arr.src;
-    }
-  });
-  console.log(imgSrc);
+
+  // imgSrc 只是原圖，不用再存一次
+  // let imgSrc;
+  // canvasJSON.objects.forEach((arr) => {
+  //   if (arr.type === "image") {
+  //     imgSrc = arr.src;
+  //   }
+  // });
 
   let boundCoordinates;
   canvasJSON.objects.forEach((arr) => {
     if (arr.type === "rect") {
-      boundCoordinates = { x: arr.left, y: arr.top, width: arr.width, height: arr.height };
+      boundCoordinates = { type: "bounding", x: arr.left, y: arr.top, width: arr.width, height: arr.height };
     }
   });
   console.log(boundCoordinates);
+  // send bounding coords after got bounding coords
+  fetch("api/1.0/label/coordinates", {
+    method: "POST",
+    body: JSON.stringify(boundCoordinates),
+    headers: { "Content-Type": "application/json", Authorization: "Bearer token" }
+  })
+    .then((response) => {
+    // 得到一個 ReadableStream 的物件
+      if (response.status === 200) {
+        return response;
+      } else if (response.status === 401) {
+        alert("Please Login.");
+        return window.location.assign("/login.html");
+      } else if (response.status === 403) {
+        alert("Token expired, please login again.");
+        return window.location.assign("/login.html");
+      }
+    })
+    .then((jsonData) => {
+      console.log(jsonData);
+    }).catch((err) => {
+      console.log(err);
+    });
 };
 
 function saveFile () {
