@@ -102,7 +102,7 @@ const signIn = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
-  res.status(200).send({
+  res.status(200).json({
     data: {
       provider: req.user.provider,
       name: req.user.name,

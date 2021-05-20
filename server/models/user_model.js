@@ -1,7 +1,7 @@
 const { pool } = require("./mysqlcon");
 const { createHash } = require("crypto");
 const jwt = require("jsonwebtoken");
-const { TOKEN_EXPIRE, TOKEN_SECRET } = process.env; // 10 mins by secs
+const { TOKEN_EXPIRE, TOKEN_SECRET } = process.env; // 10 mins by ms
 
 const USER_ROLE = {
   ADMIN: 0,
@@ -117,8 +117,18 @@ const updateLoginTime = (loginAt, id) => {
   });
 };
 
+const getUserData = (email) => {
+  return new Promise((resolve, reject) => {
+    pool.query("SELECT * FROM user WHERE email = ?", [email], (err, result) => {
+      if (err) reject(err);
+      resolve(result[0]);
+    });
+  });
+};
+
 module.exports = {
   USER_ROLE,
   signUp,
-  nativeSignIn
+  nativeSignIn,
+  getUserData
 };

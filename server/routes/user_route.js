@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const {
-  wrapAsync
+  wrapAsync,
   authentication
 } = require("../../util/util");
 
