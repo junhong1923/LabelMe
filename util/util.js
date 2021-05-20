@@ -1,15 +1,22 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+
+const AWS = require("aws-sdk");
+const multerS3 = require("multer-s3-v3");
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWSAccessKeyId,
+  secretAccessKey: process.env.AWSSecretKey
+});
+
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const User = require("../server/models/user_model");
 
 const upload = multer({
+  limit: { fileSize: 1000000 },
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      // const userId = req.userId;
-      const userId = "user1";
+      const userId = req.user.id;
       const imagePath = path.join(__dirname, `../public/assets/${userId}`);
       console.log(imagePath);
       if (!fs.existsSync(imagePath)) {
@@ -17,10 +24,34 @@ const upload = multer({
       }
       cb(null, imagePath);
     },
-    // destination: "../public/assets/",
     filename: (req, file, cb) => {
-      // console.log(file);
-      cb(null, file.originalname);
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
+      const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+      const timeStr = `${year}-${month}-${day}`;
+      const savePath = `${timeStr}_${file.originalname}`;
+      cb(null, savePath);
+    }
+  })
+});
+
+const uploadS3 = multer({
+  limit: { fileSize: 1000000 }, // limit uploaded file size within 1mb = 1000000 bytes
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.S3_BUCKET,
+    acl: "public-read",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    mimetype: "image/png",
+    key: function (req, file, cb) {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
+      const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+      const timeStr = `${year}-${month}-${day}`;
+      const savePath = `${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
+      cb(null, savePath);
     }
   })
 });
@@ -53,7 +84,7 @@ const authentication = (roleId) => {
       req.user = user;
       const userData = await User.getUserData(user.email);
       if (userData) {
-        // req.user.id = userData.id;
+        req.user.id = userData.id;
         // req.user.role_id = userData.role_id;
         req.user.picture = userData.picture;
         next();
@@ -69,6 +100,7 @@ const authentication = (roleId) => {
 
 module.exports = {
   upload,
+  uploadS3,
   wrapAsync,
   authentication
 };

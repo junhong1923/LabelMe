@@ -1,8 +1,8 @@
 const router = require("express").Router();
-const { upload, wrapAsync } = require("../../util/util");
+const { upload, uploadS3, authentication } = require("../../util/util");
 
-// const oriUpload = upload.fields([{ name: "OriImage", maxCount: 2 }]);
-const oriUpload = upload.single("OriImage");
+// const oriUpload = upload.single("OriImage");
+const oriUploadS3 = uploadS3.single("OriImage");
 
 const {
   getOriImage,
@@ -10,7 +10,7 @@ const {
 } = require("../controllers/label_controller");
 
 router.route("/label/ori-image")
-  .post(oriUpload, getOriImage);
+  .post(authentication(), oriUploadS3, getOriImage);
 
 router.route("/label/coordinates") // need to apply auth middleware in this route
   .post(getCoordinates);
