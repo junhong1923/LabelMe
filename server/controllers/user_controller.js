@@ -101,7 +101,19 @@ const signIn = async (req, res) => {
   });
 };
 
+const getUserProfile = async (req, res) => {
+  res.status(200).send({
+    data: {
+      provider: req.user.provider,
+      name: req.user.name,
+      email: req.user.email,
+      picture: req.user.picture
+    }
+  });
+};
+
 module.exports = {
   signUp,
-  signIn
+  signIn,
+  getUserProfile
 };
