@@ -2,8 +2,7 @@ const { pool } = require("./mysqlcon");
 
 const insertCoordinates = (coordinates) => {
   return new Promise((resolve, reject) => {
-    const post = { type: coordinates.type, coordinate_x: coordinates.x, coordinate_y: coordinates.y, coordinate_width: coordinates.width, coordinate_height: coordinates.height, user_id: "test", image_id: 1 };
-    pool.query("INSERT INTO label_result SET ?", post, (err, result) => {
+    pool.query("INSERT INTO label_result SET type = ?, coordinates_xy = point(?,?), coordinates_wh = point(?,?), user_id = ?, image_id = ?", [coordinates.type, coordinates.x, coordinates.y, coordinates.width, coordinates.height, "test", 1], (err, result) => {
       if (err) reject(err);
       resolve(result);
     });
