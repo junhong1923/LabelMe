@@ -32,14 +32,14 @@ const signUp = async (req, res) => {
 
   res.status(200).json({
     data: {
-      access_token: result.access_token,
-      access_expired: result.access_expired,
+      access_token: user.access_token,
+      access_expired: user.access_expired,
       user: {
-        id: result.id,
-        provider: result.provider,
-        name: result.name,
-        email: result.email,
-        picture: result.picture
+        id: user.id,
+        provider: user.provider,
+        name: user.name,
+        email: user.email,
+        picture: user.picture
       }
     }
   });

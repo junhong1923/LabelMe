@@ -47,7 +47,7 @@ const signUp = (name, roleId, email, password) => {
         user.id = result.insertId;
         user.access_token = getJWToken(user);
         user.access_expired = TOKEN_EXPIRE;
-        resolve(user);
+        resolve({ user });
       });
     });
   });
