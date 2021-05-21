@@ -2,7 +2,6 @@ const { pool } = require("./mysqlcon");
 
 const insertOriginalImage = (userId, imgSize, imgPath) => {
   return new Promise((resolve, reject) => {
-    console.log(userId, imgSize, imgPath);
     pool.getConnection((err, conn) => {
       if (err) reject(err);
       conn.beginTransaction((err) => {
