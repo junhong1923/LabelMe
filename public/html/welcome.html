@@ -2,14 +2,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Signup Page</title>
+    <title>Welcome</title>
     <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
     <div class="wrapper">
         <div class="title-text">
-            <div class="title login">Login Form</div>
-            <div class="title login">Signup Form</div>
+            <div class="title login">Login</div>
+            <div class="title login">Signup</div>
         </div>
         <div class="form-container">
             <div class="slide-controls">
@@ -21,7 +21,7 @@
             </div>
 
             <div class="form-inner">
-                <form action="#" class="login">
+                <form name="formLogin" method="post" class="login">
                     <div class="field">
                         <input type="text" placeholder="Name" required>
                     </div>
@@ -29,7 +29,7 @@
                         <input type="text" placeholder="Email Address" required>
                     </div>
                     <div class="field">
-                        <input type="text" placeholder="Password" required>
+                        <input type="password" placeholder="Password" required>
                     </div>
                     <div class="pass-link"><a href="#">Forgot password?</a></div>
                     <div class="field">
@@ -38,7 +38,7 @@
                     <div class="signup-link">Not a member? <a href="#">Signup now</a></div>
                 </form>
 
-                <form action="#" class="signup">
+                <form name="formSignup" method="post" class="signup">
                     <div class="field">
                         <input type="text" placeholder="Name" required>
                     </div>
@@ -46,12 +46,11 @@
                         <input type="text" placeholder="Email Address" required>
                     </div>
                     <div class="field">
-                        <input type="text" placeholder="Password" required>
+                        <input type="password" placeholder="Password" required>
                     </div>
                     <div class="field">
-                        <input type="text" placeholder="Confirm password" required>
+                        <input type="password" placeholder="Confirm password" required>
                     </div>
-                    <div class="pass-link"><a href="#">Forgot password?</a></div>
                     <div class="field">
                         <input type="submit" value="Signup">
                     </div>
@@ -60,5 +59,6 @@
 
         </div>
     </div>
+    <script src="../js/welcome.js"></script>
 </body>
 </html>
