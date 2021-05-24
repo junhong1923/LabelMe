@@ -18,8 +18,12 @@ app.use("/api/" + process.env.API_VERSION,
   ]
 );
 
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "./public/html/canvas.html"));
+// });
+
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/html/canvas.html"));
+  res.sendFile(path.join(__dirname, "./public/html/index.html"));
 });
 
 // Page not found
@@ -31,7 +35,7 @@ app.use((err, res, next) => {
 // Error handling
 app.use((err, res) => {
   console.log(err);
-  res.statuts(500).send("Error handling: Internal Server Error");
+  res.status(500).send("Error handling: Internal Server Error");
 });
 
 app.listen(port, () => {
