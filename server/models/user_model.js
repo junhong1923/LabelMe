@@ -62,6 +62,7 @@ const nativeSignIn = async (email, password) => {
         // console.log(result);
         if (result.length === 0) {
           resolve({ error: "You don't have an account, please signup.", status: 403 });
+          return;
         }
         // 2. verify pwd, update login time, and then genJWT for this signin
         if (result[0].password === getHashed(password)) {
