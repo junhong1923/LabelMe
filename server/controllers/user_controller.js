@@ -112,8 +112,13 @@ const getUserProfile = async (req, res) => {
   });
 };
 
+const checkAuth = (req, res) => {
+  res.json(req.user);
+};
+
 module.exports = {
   signUp,
   signIn,
-  getUserProfile
+  getUserProfile,
+  checkAuth
 };

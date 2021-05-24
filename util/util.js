@@ -70,13 +70,13 @@ const authentication = (roleId) => {
     // Returns the specified HTTP request header field
     let accessToken = req.get("Authorization");
     if (!accessToken) {
-      res.status(401).send({ error: "Unauthorized: no token" });
+      res.status(401).send({ error: "Unauthorized: no token, please Login." });
       return;
     }
 
     accessToken = accessToken.replace("Bearer ", "");
     if (accessToken === "null") {
-      res.status(401).send({ error: "Unauthorized: no token" });
+      res.status(401).send({ error: "Unauthorized: no token, please Login." });
     }
 
     try {
