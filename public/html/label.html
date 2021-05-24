@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>LabelMe</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../styles/label.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
@@ -43,10 +44,14 @@
         </div>
 
         <div >
-            <form method="post" enctype="multipart/form-data" name="uploadImage">
-                <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*"/>
-                <input type='submit', value='上傳照片', style='margin:10px;'>
-            </form>
+            <div>
+                <form class="form-img" enctype="multipart/form-data" name="uploadImage">
+                    <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*"/>
+                    <input id="share" name="share" type="button" value="private">
+                    <input type='submit', value='上傳照片', style='margin-left:10px;'>
+                </form>
+
+            </div>
             <hr>
             <!-- <input type="file" onchange="loadFile(this);" class="btn btn-secondary active" /> -->
             <div class="btn-group">
@@ -92,7 +97,7 @@
 
         <canvas id="canvas" width="800" height="600" style='border:1px solid #000000;'></canvas>
     </div>
-    <footer class="footer mt-auto text-muted py-5" style="background-color: #e3f2fd;">
+    <footer class="footer mt-5 text-muted py-5" style="background-color: #e3f2fd;">
         <div class="container">
             <p class="float-end mb-1">
                 <a href="#">Back to top</a>

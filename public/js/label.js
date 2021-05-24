@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-
-// const fabric = require("fabric").fabric;
-// import { fabric } from "fabric";
+const token = localStorage.getItem("token");
 let file;
 let drawType;
 let [lastX, lastY] = [0, 0];
@@ -98,7 +96,6 @@ const setPanEvents = (canvas) => {
         fill: "#00000000",
         width: 0,
         height: 0,
-        // selectable: false,
         hasRotatingPoint: false
       });
       rect.id = "myUUID"; // uuid();
@@ -125,6 +122,7 @@ const setPanEvents = (canvas) => {
   canvas.on("mouse:down", (event) => {
     mousePressed = true;
     [lastX, lastY] = [event.pointer.x, event.pointer.y];
+    console.log(currentMode);
     if (currentMode === modes.pan) {
       canvas.setCursor("grab");
       canvas.renderAll();
@@ -195,17 +193,16 @@ setPanEvents(canvas);
 
 const inputFile = document.getElementById("myImg");
 const reader = new FileReader();
-const imgAdded = (e) => { // Upload Image
-  console.log(e);
+const shareBtn = document.getElementById("share");
 
-  // // upload image to backend after canvas render
-  // uploadOriImageToBackend(e);
+// render uploaded image to canvas
+inputFile.addEventListener("change", (e) => {
+  clearCanvas(canvas);
+  // console.log(e);
 
   file = inputFile.files[0];
   reader.readAsDataURL(file);
-};
-
-inputFile.addEventListener("change", imgAdded);
+});
 
 reader.addEventListener("load", () => { // Loading Image
   fabric.Image.fromURL(reader.result, img => {
@@ -218,68 +215,68 @@ reader.addEventListener("load", () => { // Loading Image
   });
 });
 
-// Upload Original Image
-window.onload = function () {
-  // check token first
-  const token = localStorage.getItem("token");
-  if (token === undefined) {
-    console.log("no token, login first");
+shareBtn.addEventListener("click", (e) => {
+  e.target.style.outline = "none";
+  if (e.target.value === "private") {
+    e.target.style.color = "white";
+    e.target.style.backgroundColor = "#28a745";
+    e.target.value = "share";
   } else {
-    fetch("/api/1.0/user/auth", {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}` }
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        } else {
-          return response.json();
-        }
-      })
-      .then((jsonData) => {
-        if (jsonData.error) {
-          alert(jsonData.error);
-          window.location.assign("/html/welcome.html");
-        } else {
-          console.log(jsonData);
-        }
-      });
+    e.target.style.color = "#28a745";
+    e.target.style.backgroundColor = "white";
+    e.target.value = "private";
   }
+});
 
-  const form = document.querySelector("form");
-  form.onsubmit = submitted.bind(form);
+window.onload = (e) => {
+  // verify token authentication first
+  fetch("/api/1.0/user/auth", {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` }
+  })
+    .then((response) => {
+      if (response.status === 200) {
+        return response.json();
+      } else {
+        return response.json();
+      }
+    })
+    .then((jsonData) => {
+      if (jsonData.error) {
+        alert(jsonData.error);
+        window.location.assign("/html/welcome.html");
+      } else {
+        console.log(jsonData);
+
+        // Upload Original Image
+        const imgForm = document.querySelector(".form-img");
+        imgForm.onsubmit = submitted.bind(imgForm);
+      }
+    });
 };
 
-function submitted (event) {
+const submitted = (event) => {
   event.preventDefault();
-
   const FORM = document.forms.namedItem("uploadImage");
-
+  // 5/24 cannot get share value inside formData...
+  // console.log(event.target.elements[1].value);
   const formData = new FormData(FORM);
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/1.0/label/ori-image");
-  xhr.setRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm92aWRlciI6Im5hdGl2ZSIsIm5hbWUiOiJ0ZXN0IiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTYyMTUxNDA3NCwiZXhwIjoxNjIxODc0MDc0fQ.KAlyW_6wsDW9g9jd9_-myB52Ho8lOA3xJW5tIqF7FiU");
-  xhr.onreadystatechange = function () {
+  xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+  xhr.onreadystatechange = () => {
     if (xhr.readyState === 4) {
       console.log(xhr.response);
     }
   };
   xhr.send(formData);
-}
+};
 
 const commitLabel = (canvas) => {
   // console.log(canvas.getObjects());
   // console.log(canvas.toDataURL("image/jpeg")); // base64
   // console.log(canvas.toJSON());
   canvasJSON = canvas.toJSON();
-
-  // imgSrc 只是原圖，不用再存一次
-  // let imgSrc;
-  // canvasJSON.objects.forEach((arr) => {
-  //   if (arr.type === "image") {
-  //     imgSrc = arr.src;
-  //   }
-  // });
 
   let boundCoordinates;
   canvasJSON.objects.forEach((arr) => {
@@ -313,7 +310,7 @@ const commitLabel = (canvas) => {
     });
 };
 
-function saveFile () {
+const saveFile = () => {
   const link = document.getElementById("download");
   link.download = `labeled_${file.name}`; // name of the download file
   link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
@@ -321,7 +318,7 @@ function saveFile () {
   const currState = canvas.toJSON();
   console.log("currState of saving:");
   console.log(currState);
-}
+};
 
 const zoomInBtn = document.getElementById("zoomInBtn");
 const zoomOutBtn = document.getElementById("zoomOutBtn");
@@ -345,7 +342,7 @@ canvas.on("mouse:wheel", (event) => {
 });
 
 // 5/17
-function invertColor () {
+const invertColor = () => {
   // 抓出像素 (canvas 面對本機的影像檔案，會因為安全性的考量，不讓程式去取得圖片中的像素資料，就無法做濾鏡的處理。)
   const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height); // ImageData 物件
   const data = pixels.data; // 存放所有像素資訊的陣列。 一個像素佔據4個資料(bytes) -> r,g,b,alpha (範圍0~255)
@@ -373,7 +370,7 @@ function invertColor () {
   }
 
   canvas.getContext("2d").putImageData(pixels, 0, 0);
-}
+};
 
 // const canvas = this.$refs.drawCanvas;
 // // 將 canvas 傳入
