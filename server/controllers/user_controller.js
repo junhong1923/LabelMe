@@ -107,7 +107,9 @@ const getUserProfile = async (req, res) => {
       provider: req.user.provider,
       name: req.user.name,
       email: req.user.email,
-      picture: req.user.picture
+      picture: req.user.picture,
+      imgQty: req.user.img_qty,
+      capacity: req.user.capacity
     }
   });
 };

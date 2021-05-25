@@ -84,9 +84,12 @@ const authentication = (roleId) => {
       req.user = user;
       const userData = await User.getUserData(user.email);
       if (userData) {
+        console.log(userData);
         req.user.id = userData.id;
         // req.user.role_id = userData.role_id;
         req.user.picture = userData.picture;
+        req.user.img_qty = userData.img_qty;
+        req.user.capacity = userData.capacity;
         next();
       } else {
         res.status(403).send({ error: "Cannot find your email account." });
