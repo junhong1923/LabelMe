@@ -1,5 +1,3 @@
-// const navLogin = document.getElementById("nav-login");
-// const navLabel = document.getElementById("nav-label");
 const imageRow = document.querySelector(".album .container .row");
 
 window.onload = (e) => {
@@ -15,11 +13,12 @@ window.onload = (e) => {
     .then((res) => {
       console.log(res);
       res.forEach(obj => {
+        const imgHref = "html/label.html?id=" + obj.image_id;
         const imgPath = obj.image_path;
         const html = `
         <div class="col-4">
             <div class="card shadow-sm">
-                <a>
+                <a class="image" href=${imgHref}>
                     <img src=${imgPath} width="100%" height="100%">
                 </a>
             </div>

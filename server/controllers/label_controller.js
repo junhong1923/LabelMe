@@ -10,6 +10,7 @@ const getOriImage = async (req, res) => {
   }
 };
 
+// need to verify authentication first...
 const getCoordinates = (req, res) => {
   Label.insertCoordinates(req.body);
   res.status(200).send("insert coords");
