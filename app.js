@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/" + process.env.API_VERSION,
   [
     require("./server/routes/user_route"),
+    require("./server/routes/image_route"),
     require("./server/routes/label_route")
   ]
 );
