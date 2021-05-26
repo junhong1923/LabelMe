@@ -84,7 +84,7 @@ const authentication = (roleId) => {
       req.user = user;
       const userData = await User.getUserData(user.email);
       if (userData) {
-        console.log(userData);
+        // console.log(userData);
         req.user.id = userData.id;
         // req.user.role_id = userData.role_id;
         req.user.picture = userData.picture;
@@ -95,7 +95,7 @@ const authentication = (roleId) => {
         res.status(403).send({ error: "Cannot find your email account." });
       }
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       res.status(403).send({ error: "Forbidden: TokenExpiredError" });
     }
   };
