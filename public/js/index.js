@@ -11,9 +11,8 @@ window.onload = (e) => {
       } else { console.log(res.status); }
     })
     .then((res) => {
-      console.log(res);
       res.forEach(obj => {
-        const imgHref = "html/label.html?id=" + obj.image_id;
+        const imgHref = `html/label.html?id=${obj.image_id}&src=${obj.image_path}`;
         const imgPath = obj.image_path;
         const html = `
         <div class="col-4">
