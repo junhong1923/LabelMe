@@ -5,14 +5,18 @@ const { upload, uploadS3, authentication } = require("../../util/util");
 const oriUploadS3 = uploadS3.single("OriImage");
 
 const {
-  getOriImage,
-  getCoordinates
+  saveOriImage,
+  saveCoordinates,
+  loadLabels
 } = require("../controllers/label_controller");
 
 router.route("/label/ori-image")
-  .post(authentication(), oriUploadS3, getOriImage);
+  .post(authentication(), oriUploadS3, saveOriImage);
 
-router.route("/label/coordinates") // need to apply auth middleware in this route
-  .post(getCoordinates);
+router.route("/label/coordinates")
+  .post(authentication(), saveCoordinates);
+
+router.route("/label/load-coordinates")
+  .get(loadLabels);
 
 module.exports = router;

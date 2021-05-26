@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 const token = localStorage.getItem("token");
+let imageId;
 let file;
 let drawType;
 let [lastX, lastY] = [0, 0];
@@ -234,19 +235,30 @@ window.onload = (e) => {
     method: "POST",
     headers: { authorization: `Bearer ${token}` }
   })
-    .then((response) => {
-      if (response.status === 200) {
-        return response.json();
+    .then((res) => {
+      if (res.status === 200) {
+        return res.json();
       } else {
-        return response.json();
+        return res.json();
       }
     })
-    .then((jsonData) => {
-      if (jsonData.error) {
-        alert(jsonData.error);
+    .then(async (res) => {
+      if (res.error) {
+        alert(res.error);
         window.location.assign("/html/welcome.html");
       } else {
-        console.log(jsonData);
+        // we have userId here: res.id
+        console.log(res);
+
+        // if image_id, image_path in url then render that image to canvas
+        const url = new URL(location.href);
+        imageId = url.searchParams.get("id");
+        const imageSrc = url.searchParams.get("src");
+        if (imageSrc && imageId) {
+          renderImageSrc(imageSrc);
+          const labels = await getImageLabels(res.id, imageId);
+          renderImageLabels(labels);
+        }
 
         // Upload Original Image
         const imgForm = document.querySelector(".form-img");
@@ -278,36 +290,83 @@ const commitLabel = (canvas) => {
   // console.log(canvas.toJSON());
   canvasJSON = canvas.toJSON();
 
-  let boundCoordinates;
+  let coordinates;
   canvasJSON.objects.forEach((arr) => {
     if (arr.type === "rect") {
-      boundCoordinates = { type: "bounding", x: arr.left, y: arr.top, width: arr.width, height: arr.height };
+      coordinates = { imageId: imageId, type: "bounding", x: arr.left, y: arr.top, width: arr.width, height: arr.height };
     }
   });
-  console.log(boundCoordinates);
-  // send bounding coords after got bounding coords
-  fetch("api/1.0/label/coordinates", {
+
+  fetch("/api/1.0/label/coordinates", {
     method: "POST",
-    body: JSON.stringify(boundCoordinates),
-    headers: { "Content-Type": "application/json", Authorization: "Bearer token" }
+    body: JSON.stringify(coordinates),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
   })
-    .then((response) => {
-    // 得到一個 ReadableStream 的物件
-      if (response.status === 200) {
-        return response;
-      } else if (response.status === 401) {
+    .then((res) => {
+      console.log("Response status: ", res.status);
+      // 得到一個 ReadableStream 的物件
+      if (res.status === 200) {
+        return res.json();
+      } else if (res.status === 401) {
         alert("Please Login.");
         return window.location.assign("/login.html");
-      } else if (response.status === 403) {
-        alert("Token expired, please login again.");
-        return window.location.assign("/login.html");
+      } else {
+        return res.json();
       }
     })
-    .then((jsonData) => {
-      console.log(jsonData);
+    .then((res) => {
+      console.log(res);
+      if (res.error === "Cannot find your email account.") {
+        alert(`${res.error}Please Signup`);
+        window.location.assign("login.html");
+      } else if (res.error === "Forbidden: TokenExpiredError") {
+        alert(res.error);
+        window.location.assign("login.html");
+      }
     }).catch((err) => {
       console.log(err);
     });
+};
+
+const renderImageSrc = (url) => {
+  fabric.Image.fromURL(url, (img) => {
+    const oImg = img.set({
+      left: (canvas.width - img.width) / 2,
+      top: (canvas.height - img.height) / 2
+    });
+    canvas.add(oImg);
+  });
+};
+
+const getImageLabels = (userId, imageId) => {
+  return new Promise((resolve, reject) => {
+    fetch(`/api/1.0/label/load-coordinates?user=${userId}&img=${imageId}`, { method: "GET" })
+      .then((res) => {
+        if (res.status === 200) {
+          return res.json();
+        }
+      })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch(err => reject(err));
+  });
+};
+
+const renderImageLabels = (labels) => {
+  console.log(labels);
+  const XY = labels.coordinates_xy;
+  const WH = labels.coordinates_wh;
+  const label = new fabric.Rect({
+    left: XY.x,
+    top: XY.y,
+    width: WH.x,
+    height: WH.y,
+    strokeWidth: 2,
+    stroke: "green",
+    fill: "#00000000"
+  });
+  canvas.add(label);
 };
 
 const saveFile = () => {
