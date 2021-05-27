@@ -5,7 +5,7 @@ const getImages = async (req, res) => {
   const tag = req.query.tag;
   console.log({ type, tag });
   const images = await Image.getImages();
-  res.json(images);
+  res.status(200).json(images);
 };
 
 module.exports = { getImages };

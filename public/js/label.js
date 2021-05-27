@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 const token = localStorage.getItem("token");
 let imageId;
+let imageSrc;
 let file;
 let drawType;
 let [lastX, lastY] = [0, 0];
@@ -253,11 +254,14 @@ window.onload = (e) => {
         // if image_id, image_path in url then render that image to canvas
         const url = new URL(location.href);
         imageId = url.searchParams.get("id");
-        const imageSrc = url.searchParams.get("src");
+        imageSrc = url.searchParams.get("src");
         if (imageSrc && imageId) {
           renderImageSrc(imageSrc);
           const labels = await getImageLabels(res.id, imageId);
-          renderImageLabels(labels);
+          if (!labels.msg) {
+            activateLabelBtn();
+            renderImageLabels(labels);
+          }
         }
 
         // Upload Original Image
@@ -335,7 +339,7 @@ const renderImageSrc = (url) => {
       top: (canvas.height - img.height) / 2
     });
     canvas.add(oImg);
-  });
+  }, { crossOrigin: "Anonymous" });
 };
 
 const getImageLabels = (userId, imageId) => {
@@ -364,14 +368,28 @@ const renderImageLabels = (labels) => {
     height: WH.y,
     strokeWidth: 2,
     stroke: "green",
-    fill: "#00000000"
+    fill: "transparent"
   });
   canvas.add(label);
 };
 
+const activateLabelBtn = () => {
+  const LabelBtn = document.getElementById("flexSwitchCheckChecked");
+  LabelBtn.removeAttribute("disabled");
+};
+
 const saveFile = () => {
   const link = document.getElementById("download");
-  link.download = `labeled_${file.name}`; // name of the download file
+  // 5/26 如果是從主頁點近來開始的，會沒有file.name。可能要從url去切出檔名
+  let downloadFileName;
+  if (file) {
+    downloadFileName = `labeled_${file.name}`;
+  } else {
+    // get name of img url
+    downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1]}`;
+  }
+  console.log(downloadFileName);
+  link.download = downloadFileName;
   link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
   link.click();
   const currState = canvas.toJSON();
