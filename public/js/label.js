@@ -259,7 +259,7 @@ window.onload = (e) => {
           renderImageSrc(imageSrc);
           const labels = await getImageLabels(res.id, imageId);
           if (!labels.msg) {
-            activateLabelBtn();
+            activateLabelBtn(labels);
             renderImageLabels(labels);
           }
         }
@@ -339,7 +339,7 @@ const renderImageSrc = (url) => {
       top: (canvas.height - img.height) / 2
     });
     canvas.add(oImg);
-  }, { crossOrigin: "Anonymous" });
+  });
 };
 
 const getImageLabels = (userId, imageId) => {
@@ -373,9 +373,23 @@ const renderImageLabels = (labels) => {
   canvas.add(label);
 };
 
-const activateLabelBtn = () => {
+const activateLabelBtn = (labels) => {
   const LabelBtn = document.getElementById("flexSwitchCheckChecked");
   LabelBtn.removeAttribute("disabled");
+
+  LabelBtn.addEventListener("click", () => {
+    if (canvas.getObjects().length === 1) {
+      // if only have image, then render label
+      renderImageLabels(labels);
+    } else {
+      canvas.getObjects().forEach(arr => {
+        // if arrtibute stroke = green, then remove this bounding coordinates
+        if (arr.stroke === "green") {
+          canvas.remove(arr);
+        }
+      });
+    }
+  });
 };
 
 const saveFile = () => {
