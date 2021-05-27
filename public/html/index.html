@@ -3,14 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>LabelMe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="../styles/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> -->
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light border-bottom"> <!--  style="background-color: #e3f2fd;"-->
+    <header class="p-4 mb-3 border-bottom">
+        <div class="container">
+          <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <!-- <nav class="navbar navbar-expand-lg navbar-light border-bottom"></nav> -->
+            <a href="/" class="navbar-brand bi">Label Me</a>
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="#" class="nav-link px-2 link-dark">Service</a></li>
+                <li><a href="#" class="nav-link px-2 link-dark">Documentation</a></li>
+                <li id="nav-login"><a href="./html/welcome.html" class="nav-link px-2 link-dark">Login</a></li>
+                <li id="nav-label"><a href="./html/label.html" class="nav-link px-2 link-dark">Label</a></li>
+            </ul>
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
+              <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+            </form>
+            
+            <div class="dropdown text-end">
+                <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                  <img src="../images/member.png" alt="mdo" width="32" height="32" class="rounded-circle">
+                </a>
+                <ul class="dropdown-menu text-small" aria-labelledby="dropdownUser1">
+                  <li><a class="dropdown-item" href="#">Settings</a></li>
+                  <li><a class="dropdown-item" href="#">Profile</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="#">Sign out</a></li>
+                </ul>
+              </div>
+          </div>
+        </div>
+    </header>
+
+
+    <!-- <nav class="navbar navbar-expand-lg navbar-light border-bottom">
         <a href="/" class="navbar-brand">Label Me</a>
 
         <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3 ml-auto">
@@ -40,7 +73,7 @@
             </ul>
         </div>
 
-    </nav>
+    </nav> -->
 
     <main>
         <section class=" text-center">
@@ -69,10 +102,17 @@
         <div class="tab-content">
             <div id="public" class="container tab-pane in active">
                 <h3>Public photos</h3>
-                <p>ooxxx qqoo</p>
+                <p> All</p>
+                <p>Labeled</p>
+                <p>Unlabeled</p>
             </div>
             <div id="private" class="container tab-pane fade">
                 <h3>Private photos</h3>
+                <p>All</p>
+                <p>Dataset1</p>
+                <p>Dataset2</p>
+                <p>Lung Nodule</p>
+                <p>+ Create Folder</p>
             </div>
             <div id="popular" class="container tab-pane fade">
                 <h3>Popular photos</h3>
@@ -80,9 +120,16 @@
         </div>
 
         <div class="album py-5 bg-light">
-            <div class="container">
+            <div class="container custom-container-width">
                 <div class="row"></div>
             </div>
+
+
+            <div class="pictures">
+       
+            </div>
+
+
         </div>
     </main>
 
