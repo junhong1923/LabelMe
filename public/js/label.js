@@ -340,6 +340,7 @@ const renderImageSrc = (url) => {
     });
     canvas.add(oImg);
   });
+  // 3rd param: , { crossOrigin: "Anonymous" }
 };
 
 const getImageLabels = (userId, imageId) => {
