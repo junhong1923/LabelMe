@@ -4,11 +4,16 @@ const port = process.env.PORT;
 
 // Express Initialization
 const express = require("express");
+const cors = require("cors");
 const app = express();
 
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set("json spaces", 2);
+
+// Enable All CORS Requests
+app.use(cors());
 
 // API routes
 app.use("/api/" + process.env.API_VERSION,
