@@ -1,64 +1,65 @@
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Welcome</title>
-    <link rel="stylesheet" href="../styles/welcome.css">
-</head>
-<body>
+    <link rel="stylesheet" href="../styles/welcome.css" />
+  </head>
+  <body>
     <div class="wrapper">
-        <div class="title-text">
-            <div class="title login">Login</div>
-            <div class="title login">Signup</div>
+      <div class="title-text">
+        <div class="title login">Login</div>
+        <div class="title login">Signup</div>
+      </div>
+      <div class="form-container">
+        <div class="slide-controls">
+          <input type="radio" name="slider" id="login" checked />
+          <input type="radio" name="slider" id="signup" />
+          <label for="login" class="slide login">Login</label>
+          <label for="signup" class="slide signup">Signup</label>
+          <div class="slide-tab"></div>
         </div>
-        <div class="form-container">
-            <div class="slide-controls">
-                <input type="radio" name="slider" id="login" checked>
-                <input type="radio" name="slider" id="signup">
-                <label for="login" class="slide login">Login</label>
-                <label for="signup" class="slide signup">Signup</label>
-                <div class="slide-tab"></div>
+
+        <div class="form-inner">
+          <form name="formLogin" method="post" class="login">
+            <div class="field">
+              <input type="text" placeholder="Name" required />
             </div>
-
-            <div class="form-inner">
-                <form name="formLogin" method="post" class="login">
-                    <div class="field">
-                        <input type="text" placeholder="Name" required>
-                    </div>
-                    <div class="field">
-                        <input type="text" placeholder="Email Address" required>
-                    </div>
-                    <div class="field">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <div class="pass-link"><a href="#">Forgot password?</a></div>
-                    <div class="field">
-                        <input type="submit" value="Login">
-                    </div>
-                    <div class="signup-link">Not a member? <a href="#">Signup now</a></div>
-                </form>
-
-                <form name="formSignup" method="post" class="signup">
-                    <div class="field">
-                        <input type="text" placeholder="Name" required>
-                    </div>
-                    <div class="field">
-                        <input type="text" placeholder="Email Address" required>
-                    </div>
-                    <div class="field">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <div class="field">
-                        <input type="password" placeholder="Confirm password" required>
-                    </div>
-                    <div class="field">
-                        <input type="submit" value="Signup">
-                    </div>
-                </form>
+            <div class="field">
+              <input type="text" placeholder="Email Address" required />
             </div>
+            <div class="field">
+              <input type="password" placeholder="Password" required />
+            </div>
+            <div class="pass-link"><a href="#">Forgot password?</a></div>
+            <div class="field">
+              <input type="submit" value="Login" />
+            </div>
+            <div class="signup-link">
+              Not a member? <a href="#">Signup now</a>
+            </div>
+          </form>
 
+          <form name="formSignup" method="post" class="signup">
+            <div class="field">
+              <input type="text" placeholder="Name" required />
+            </div>
+            <div class="field">
+              <input type="text" placeholder="Email Address" required />
+            </div>
+            <div class="field">
+              <input type="password" placeholder="Password" required />
+            </div>
+            <div class="field">
+              <input type="password" placeholder="Confirm password" required />
+            </div>
+            <div class="field">
+              <input type="submit" value="Signup" />
+            </div>
+          </form>
         </div>
+      </div>
     </div>
     <script src="../js/welcome.js"></script>
-</body>
+  </body>
 </html>
