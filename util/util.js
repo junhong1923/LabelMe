@@ -76,7 +76,8 @@ const authentication = (roleId) => {
 
     accessToken = accessToken.replace("Bearer ", "");
     if (accessToken === "null") {
-      res.status(401).send({ error: "Unauthorized: no token, please Login." });
+      res.status(401).send({ error: "Unauthorized: Bearer is null, please Login." });
+      return;
     }
 
     try {
@@ -96,7 +97,7 @@ const authentication = (roleId) => {
       }
     } catch (error) {
       console.log(error);
-      res.status(403).send({ error: "Forbidden: TokenExpiredError" });
+      res.status(403).send({ error });
     }
   };
 };
