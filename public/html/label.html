@@ -53,22 +53,21 @@
         <div class="container">
             <div>
                 <form class="form-img" enctype="multipart/form-data" name="uploadImage">
-                    <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active"
-                        accept="image/*" />
+                    <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*" />
                     <input id="share" name="share" type="button" value="private">
                     <input type='submit' , value='上傳照片' , style='margin-left:10px;'>
                 </form>
             </div>
             <hr>
             <!-- <input type="file" onchange="loadFile(this);" class="btn btn-secondary active" /> -->
-            <div class="btn-group">
-                <button id="pan" class="btn btn-secondary" onclick="toggleMode(this, modes.pan)">Toggle Pan</button>
+            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                <button id="pan" type="button" class="btn btn-secondary" onclick="toggleMode(this, modes.pan)">Toggle Pan</button>
 
-                <div class="btn-group">
-                    <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                <div class="btn-group" role="group">
+                    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         Annotations<span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
                         <li><a id="line" onclick="toggleMode(this, modes.drawing)" class="dropdown-item flex-fill"
                                 href="#">Line</a></li>
                         <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill"
@@ -112,7 +111,7 @@
         </div>
 
         <div class="canvas">
-            <canvas id="canvas" width="900" height="700" style='border:1px solid #000000;'></canvas>
+            <canvas id="canvas" width="900" height="700"></canvas>
         </div>
     </div>
     <footer class="footer mt-5 text-muted py-5" style="background-color: #e3f2fd;">
