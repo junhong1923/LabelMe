@@ -31,7 +31,7 @@ const loadLabels = async (req, res) => {
   if (result.length > 0) {
     res.status(200).send(result[0]);
   } else {
-    console.log(result);
+    // console.log(result);
     res.status(200).send({ msg: "Label not found" });
   }
 };
