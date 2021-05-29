@@ -1,10 +1,22 @@
 const { pool } = require("./mysqlcon");
 
-const SHARE = { private: 0, share: 1 };
+const SHARE = { private: 0, public: 1 };
 
-const getImages = () => {
+const getImages = (type, userId, status) => {
   return new Promise((resolve, reject) => {
-    pool.query("SELECT image_id, status, image_path, tag, share, private_folder FROM original_image ORDER BY image_id DESC", (err, result) => {
+    const condition = { sql: "", binding: [] };
+    if (type === "private" && userId) {
+      condition.sql = "WHERE user_id = ?";
+      condition.binding = [userId];
+    } else if (type === "public") {
+      condition.sql = "WHERE share = ?";
+      condition.binding = [SHARE[type]];
+      if (status !== "undefined") {
+        condition.sql += ` and status = ${status}`;
+      }
+    }
+    const ImgaeQuery = `SELECT image_id, status, image_path, tag, share, private_folder FROM original_image ${condition.sql} ORDER BY image_id DESC`;
+    pool.query(ImgaeQuery, condition.binding, (err, result) => {
       if (err) reject(err);
       if (result.length > 0) {
         resolve(result);
