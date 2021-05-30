@@ -8,6 +8,18 @@ header {
   margin-bottom: 1rem; */
 }
 
+#myTabContent {
+  display: flex;
+  align-items: center;
+}
+
+#myTabContent .tab-pane {
+  width: 260px;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+}
+
 .container.custom-container-width {
   max-width: 1010px; /* 最後內容寬會是 980px */
 }
@@ -55,4 +67,15 @@ header {
 
 .pictures .picture .imageContainer img:hover {
   transform: scale(1.1);
+}
+
+/* for bootstrap img*/
+.card .image img {
+    border-radius: 5px;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.card .image img:hover {
+    transform: scale(1.1);
 }
