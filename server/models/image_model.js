@@ -8,6 +8,9 @@ const getImages = (type, userId, status) => {
     if (type === "private" && userId) {
       condition.sql = "WHERE user_id = ?";
       condition.binding = [userId];
+      if (status !== undefined) {
+        condition.sql += ` and status = ${status}`;
+      }
     } else if (type === "public") {
       condition.sql = "WHERE share = ?";
       condition.binding = [SHARE[type]];

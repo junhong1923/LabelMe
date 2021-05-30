@@ -339,7 +339,7 @@ const renderImageSrc = (url) => {
       top: (canvas.height - img.height) / 2
     });
     canvas.add(oImg);
-  }, { crossOrigin: "Anonymous" });
+  });
   // 3rd param: , { crossOrigin: "Anonymous" }
 };
 
