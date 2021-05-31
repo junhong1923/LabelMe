@@ -7,6 +7,7 @@ let file;
 let drawType;
 let [lastX, lastY] = [0, 0];
 let isOrigin = true;
+const signout = document.querySelector("#signout");
 
 const DrawingColours = { BLACK: "rgba(0,0,0,1)", WHITE: "rgba(255,255,255,1)" };
 const DEFAULT_OPACITY = 0.2;
@@ -462,6 +463,11 @@ const invertColor = () => {
   }
 
   canvas.getContext("2d").putImageData(pixels, 0, 0);
+};
+
+signout.onclick = () => {
+  localStorage.removeItem("token");
+  window.location.assign("/");
 };
 
 // const canvas = this.$refs.drawCanvas;

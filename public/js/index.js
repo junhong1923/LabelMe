@@ -4,6 +4,7 @@ const imageRow = document.querySelector(".album .container .row");
 const filterTab = document.querySelector("#myTab");
 const selectedTabContent = document.querySelector("#myTabContent");
 let userId;
+const signout = document.querySelector("#signout");
 
 const getImageData = (type, userId, status) => {
   let url;
@@ -215,4 +216,9 @@ const cancelDefault = (e) => {
   e.preventDefault();
   e.stopPropagation();
   return false;
+};
+
+signout.onclick = () => {
+  localStorage.removeItem("token");
+  window.location.assign("/");
 };
