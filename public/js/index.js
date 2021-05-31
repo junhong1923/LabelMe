@@ -30,8 +30,9 @@ const getImageData = (type, userId, status) => {
         imageRow.innerHTML = "";
 
         if (type === "private") {
+          // sideBar
           imageRow.innerHTML = `
-            <div class="folder">
+            <div class="folder" id="target-container" data-role="drag-drop-container">
               <ul class="list-unstyled ps-0">
                 <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
                   <img src="../images/member.png" alt="mdo" width="32" height="32" class="rounded-circle"/>
@@ -43,22 +44,24 @@ const getImageData = (type, userId, status) => {
               </ul>
             </div>
 
-            <div class="row images"></div>        
+            <div class="row images" data-role="drag-drop-container"></div>        
           `;
 
           // eventlistener for create folder btn
           const createFolderBtn = document.querySelector("#createFolder");
-          createFolderBtn.onclick = (e) => {
+          createFolderBtn.onclick = async (e) => {
             const folder = document.createElement("button");
 
-            Swal.fire({
-              title: "Type folder name",
+            const { value: folderName } = await Swal.fire({
+              title: "Create Folder",
+              inputLabel: "Type your folder name.",
               input: "text",
+              inputPlaceholder: "Data_set_1",
               showCancelButton: true
             });
 
-            folder.className = "btn";
-            folder.textContent = "Folder 1";
+            folder.className = "btn btn-toggle align-items-center rounded collapsed";
+            folder.textContent = folderName;
 
             e.target.parentNode.insertBefore(folder, createFolderBtn);
           };
@@ -70,10 +73,10 @@ const getImageData = (type, userId, status) => {
             const imgPath = obj.image_path;
             const labelStatus = obj.status ? "labeled" : "unlabeled";
             const html = `
-                <div class="col-4">
+                <div id="img-${obj.image_id}" class="col-4" draggable="true">
                     <div class="card shadow-sm">
                         <a class="image" href=${imgHref}>
-                            <img src=${imgPath} width="100%" height="100%">
+                            <img src=${imgPath} width="100%" height="100%" >
                         </a>
                         <p>Tag: ${obj.tag}</p>
                         <p>Status: ${labelStatus}</p>
@@ -81,6 +84,19 @@ const getImageData = (type, userId, status) => {
                 </div>
                 `;
             privateImageRow.innerHTML += html;
+          });
+
+          // EventListener for dragSource: Allow multiple draggable items
+          const dragSources = document.querySelectorAll("[draggable='true']");
+          dragSources.forEach(dragSource => {
+            dragSource.addEventListener("dragstart", dragStart);
+          });
+          // EventListener for dragContainer: Allow multiple dropped targets
+          const dropTargets = document.querySelectorAll("[data-role='drag-drop-container']");
+          dropTargets.forEach(dropTarget => {
+            dropTarget.addEventListener("drop", dropped);
+            dropTarget.addEventListener("dragenter", cancelDefault);
+            dropTarget.addEventListener("dragover", cancelDefault);
           });
         } else {
           res.forEach(obj => {
@@ -179,4 +195,24 @@ window.onload = (e) => {
       }
     }
   });
+};
+
+const dragStart = (e) => {
+  console.log("dragStart");
+  console.log(e.target.id);
+  e.dataTransfer.setData("text/plain", e.target.id);
+};
+
+const dropped = (e) => {
+  console.log("dropped");
+  cancelDefault(e);
+  const id = e.dataTransfer.getData("text/plain");
+//   e.target.appendChild(document.querySelector("#" + id));
+  // 5/31 maybe call backend api to store imgId into particular folder
+};
+
+const cancelDefault = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  return false;
 };
