@@ -12,6 +12,10 @@
   /* transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; */
 }
 
+.container .tool-bar {
+  margin-bottom: 3rem;
+}
+
 .canvas {
   display: flex;
   justify-content: center;
@@ -21,5 +25,5 @@
   /* display: flex;
   justify-content: center; */
   border:1px solid #000000;
-  margin-top: 3rem;
+  /* margin-top: 3rem; */
 }

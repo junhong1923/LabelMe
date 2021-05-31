@@ -21,7 +21,9 @@ header {
 }
 
 .container.custom-container-width {
-  max-width: 1010px; /* 最後內容寬會是 980px */
+  margin-right: 2.5rem;
+  margin-left: 1rem;;
+  /* max-width: 1010px; 最後內容寬會是 980px */
 }
 
 .album .container {
@@ -32,15 +34,32 @@ header {
 }
 
 .album .row {
-  margin-right: -100px;
-  margin-left: -100px;
+  margin-right: -10%;
+  /* margin-left: -6%; */
+  /* margin-right: 5%; */
+}
+
+.album .row .folder {
+  width:170px;
+  height: 450px;
+  /* border: 1px green solid; */
+}
+
+.album .row .images {
+  /* width:1090px; */
+  /* width: 1100px; */
+  width: 1080px;
+  height: 800px;
+  /* border: 1px blue solid; */
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .album .container .row .card {
   margin-bottom: 1rem;
 }
 
-.pictures {
+/* .pictures {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -67,7 +86,7 @@ header {
 
 .pictures .picture .imageContainer img:hover {
   transform: scale(1.1);
-}
+} */
 
 /* for bootstrap img*/
 .card .image img {
