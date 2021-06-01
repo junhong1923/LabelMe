@@ -43,19 +43,30 @@
     </header>
 
     <div class="container">
-        <div class="pt-4 bg-dark text-white my-3 border">
-            <p>1. Choose your image and then upload it.</p>
-            <p>2. Use annotation tools to label!</p>
-            <p>3. Make sure to commit each steps to save your labeling.</p>
-            <p>4. Download the labeled image to get the result!</p>
+        <div class="accordion" id="accordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                Click Here to See Instructions
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordion">
+              <div class="accordion-body">
+                <p>1. Choose your image and then upload it.</p>
+                <p>2. Use annotation tools to label!</p>
+                <p>3. Make sure to commit each steps to save your labeling.</p>
+                <p>4. Download the labeled image to get the result!</p>
+              </div>
+            </div>
+          </div>
         </div>
-
+        <hr>
         <div class="container">
             <div>
                 <form class="form-img" enctype="multipart/form-data" name="uploadImage">
-                    <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*" />
-                    <input id="share" name="share" type="button" value="private">
-                    <input type='submit' , value='上傳照片' , style='margin-left:10px;'>
+                  <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*" />
+                  <input id="share" name="share" type="button" value="private">
+                  <input type='submit' , value='上傳照片' , style='margin-left:10px;'>
                 </form>
             </div>
             <hr>
@@ -65,18 +76,15 @@
 
                 <div class="btn-group" role="group">
                     <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        Annotations<span class="caret"></span>
+                        Annotations
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                        <li><a id="line" onclick="toggleMode(this, modes.drawing)" class="dropdown-item flex-fill"
-                                href="#">Line</a></li>
-                        <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill"
-                                href="#">Bounding Box</a></li>
-                        <li><a id="poly" onclick="toggleMode(this, modes.poly)" class="dropdown-item flex-fill"
-                                href="#">Polygon</a></li>
+                        <li><a id="line" onclick="toggleMode(this, modes.drawing)" class="dropdown-item flex-fill">Line</a></li>
+                        <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill">Bounding Box</a></li>
+                        <li><a id="poly" onclick="toggleMode(this, modes.poly)" class="dropdown-item flex-fill">Polygon</a></li>
                     </ul>
                 </div>
-
+            </div>
                 <!-- <button id="line" onclick="drawEvent(this);" class="btn btn-secondary">Line</button>
                     <button id="bounding" onclick="drawEvent(this);" class="btn btn-secondary">Bounding Box</button>
                     <button id="poly" onclick="drawEvent(this);" class="btn btn-secondary">Polygon</button> -->
@@ -91,17 +99,18 @@
             <div class="btn-group">
                 <button id="zoomInBtn" class="btn btn-secondary">Zoom in</button>
                 <button id="zoomOutBtn" class="btn btn-secondary">Zoom out</button>
-                目前縮放: <input type="text" readonly value="100%" id="zoom">
+                <label for="zoom">目前縮放：</label>
+                <input type="text" readonly value="100%" id="zoom">
             </div>
 
             <hr>
             <div>
                 <button onclick="undo();" class="btn btn-secondary">Undo</button>
-                <button onclick="clearCanvas(canvas);" class="btn btn-secondary">Clear all</button> <!-- clearPad(); -->
+                <button onclick="clearCanvas(canvas);" class="btn btn-secondary">Clear Label</button> <!-- clearPad(); -->
                 <button onclick="restoreCanvas(canvas, svgState);" class="btn btn-secondary">Restore</button>
                 <button onclick="commitLabel(canvas)" class="btn btn-secondary">Save & Commit</button>
-                <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
-                <a id="download"></a>
+                <!-- <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
+                <a id="download"></a> -->
             </div>
             <hr>
             <div class="form-check form-switch">
@@ -112,7 +121,42 @@
 
         <div class="canvas">
             <canvas id="canvas" width="900" height="700"></canvas>
+            <div class="board table-responsive">
+
+              <table class="table table-sm table-hover caption-top table-bordered">
+                <caption>Lists of labels</caption>
+                <thead class="table-light">
+                  <tr>
+                    <!-- <th scope="col">#</th> -->
+                    <th scope="col">Tag</th>
+                    <th scope="col">Labeler</th>
+                    <th scope="col">Display</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">face</th>
+                    <td>james</td>
+                    <td><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="remove" width="25px" height="25px"></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">eyes</th>
+                    <td>test</td>
+                    <td><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="remove" width="25px" height="25px"></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
+              <a id="download"></a>
+
+            </div>
         </div>
+
+        <div>
+
+        </div>
+
     </div>
     <footer class="footer mt-5 text-muted py-5" style="background-color: #e3f2fd;">
         <div class="container">

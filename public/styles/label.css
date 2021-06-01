@@ -12,9 +12,20 @@
   /* transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; */
 }
 
-.container .tool-bar {
+/* .container .tool-bar {
   margin-bottom: 3rem;
+} */
+
+.container .container .btn-group label {
+  align-items: center;
 }
+
+.container .container .btn-group input {
+  width: 50px;
+  height: 40px;
+  margin-right: 5px;
+}
+
 
 .canvas {
   display: flex;
@@ -22,8 +33,25 @@
 }
 
 #canvas {
-  /* display: flex;
-  justify-content: center; */
+  /* display: inline-block; */
+  /* justify-content: center; */
   border:1px solid #000000;
   /* margin-top: 3rem; */
+}
+
+.canvas .board {
+  /* font-size: 10px; */
+  /* font-weight: 3px; */
+  /* width: 225px; */
+  width: 250px;
+  height: 700px;
+  padding-left: 3px;
+  /* border: 1px blue solid; */
+  /* display: inline-block; */
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas .board table caption {
+  padding-left: 3.5rem;
 }
