@@ -29,7 +29,7 @@ const loadLabels = async (req, res) => {
   const imgId = req.query.img;
   const result = await Label.queryLabels(imgId);
   if (result.length > 0) {
-    res.status(200).send(result[0]);
+    res.status(200).send(result);
   } else {
     // console.log(result);
     res.status(200).send({ msg: "Label not found" });

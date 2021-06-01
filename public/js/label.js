@@ -9,9 +9,6 @@ let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 
-const DrawingColours = { BLACK: "rgba(0,0,0,1)", WHITE: "rgba(255,255,255,1)" };
-const DEFAULT_OPACITY = 0.2;
-
 const initCanvas = (id) => {
   return new fabric.Canvas(id, {
     backgroundColor: "white",
@@ -53,7 +50,7 @@ const toggleMode = (e, mode) => {
       // canvas.renderAll();
       e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle";
     } else { // 拉框模式
-      // canvas.freeDrawingBrush.color = "";
+      // canvas.freeDrawingBrush.color = "green";
       // canvas.freeDrawingBrush.width = 3;
       currentMode = modes.bounding;
       canvas.isDrawingMode = false;
@@ -94,14 +91,13 @@ const setPanEvents = (canvas) => {
         left: event.pointer.x,
         top: event.pointer.y,
         strokeWidth: 2,
-        stroke: "green", // DrawingColours
-        // fill: this.setOpacity(DrawingColours.WHITE, DEFAULT_OPACITY),
+        stroke: "green",
         fill: "#00000000",
         width: 0,
         height: 0,
         hasRotatingPoint: false
       });
-      rect.id = "myUUID"; // uuid();
+      rect.id = mouseClickId; // uuid();
 
       canvas.add(rect);
 
@@ -113,8 +109,11 @@ const setPanEvents = (canvas) => {
       rect.set({ top: Math.min(event.pointer.y, lastY) });
       rect.setCoords();
 
-      for (let i = 0; i < canvas.getObjects().length; i++) {
-        if (canvas.getObjects()[i]._element === undefined || canvas.getObjects()[i].stroke === "rgb(0, 0, 0)") {
+      for (let i = 0; i < canvas.getObjects().length - 1; i++) {
+        // if (canvas.getObjects()[i]._element === undefined || canvas.getObjects()[i].stroke === "rgb(0, 0, 0)") {
+        //   canvas.remove(canvas.getObjects()[i]);
+        // }
+        if (canvas.getObjects()[i].id === mouseClickId && canvas.getObjects()[i].stroke === "green") {
           canvas.remove(canvas.getObjects()[i]);
         }
       }
@@ -134,6 +133,7 @@ const setPanEvents = (canvas) => {
 
   canvas.on("mouse:up", (event) => {
     mousePressed = false;
+    mouseClickId += 1;
     canvas.setCursor("default");
     canvas.renderAll();
   });
@@ -181,6 +181,7 @@ const groupObjects = (canvas, group, shouldGroup) => {
 const canvas = initCanvas("canvas");
 // const svgState = {};
 let mousePressed = false;
+let mouseClickId = 0;
 const group = {};
 
 let currentMode;
@@ -211,7 +212,8 @@ reader.addEventListener("load", () => { // Loading Image
   fabric.Image.fromURL(reader.result, img => {
     img.set({
       left: (canvas.width - img.width) / 2,
-      top: (canvas.height - img.height) / 2
+      top: (canvas.height - img.height) / 2,
+      selectable: false
     });
     canvas.add(img);
     canvas.requestRenderAll();
@@ -337,11 +339,28 @@ const renderImageSrc = (url) => {
   fabric.Image.fromURL(url, (img) => {
     const oImg = img.set({
       left: (canvas.width - img.width) / 2,
-      top: (canvas.height - img.height) / 2
+      top: (canvas.height - img.height) / 2,
+      selectable: false
     });
-    canvas.add(oImg);
+    // clear would clear labels and images
+    // canvas.add(oImg);
+
+    // set background, then would not be clear as other labels
+    canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas));
+    canvas.renderAll();
   });
   // 3rd param: , { crossOrigin: "Anonymous" }
+
+  // using img element
+  // const imgElement = document.createElement("img");
+  // imgElement.src = url;
+  // imgElement.crossOrigin = "Anonymous";
+  // const imgInstance = new fabric.Image(imgElement, {
+  //   left: (canvas.width - imgElement.width) / 2,
+  //   top: (canvas.height - imgElement.height) / 2,
+  //   selectable: false
+  // });
+  // canvas.add(imgInstance);
 };
 
 const getImageLabels = (userId, imageId) => {
@@ -361,19 +380,38 @@ const getImageLabels = (userId, imageId) => {
 
 const renderImageLabels = (labels) => {
   console.log(labels);
-  const XY = labels.coordinates_xy;
-  const WH = labels.coordinates_wh;
-  const label = new fabric.Rect({
-    left: XY.x,
-    top: XY.y,
-    width: WH.x,
-    height: WH.y,
-    strokeWidth: 2,
-    stroke: "green",
-    fill: "transparent"
+  labels.forEach(arr => {
+    const XY = arr.coordinates_xy;
+    const WH = arr.coordinates_wh;
+    const label = new fabric.Rect({
+      left: XY.x,
+      top: XY.y,
+      width: WH.x,
+      height: WH.y,
+      strokeWidth: 2,
+      stroke: "green",
+      fill: "transparent"
+    });
+    canvas.add(label);
   });
-  canvas.add(label);
+  // const XY = labels.coordinates_xy;
+  // const WH = labels.coordinates_wh;
+  // const label = new fabric.Rect({
+  //   left: XY.x,
+  //   top: XY.y,
+  //   width: WH.x,
+  //   height: WH.y,
+  //   strokeWidth: 2,
+  //   stroke: "green",
+  //   fill: "transparent"
+  // });
+  // canvas.add(label);
 };
+
+// get selected canvas object
+// canvas.on("selection:created", (e) => {
+//   console.log(e.target);
+// });
 
 const activateLabelBtn = (labels) => {
   const LabelBtn = document.getElementById("flexSwitchCheckChecked");
