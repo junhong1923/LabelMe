@@ -20,11 +20,11 @@ header {
 
 }
 
-.container.custom-container-width {
-  margin-right: 2.5rem;
-  margin-left: 1rem;;
+/* .container.custom-container-width { */
+  /* margin-right: 2.5rem;
+  margin-left: 1rem;; */
   /* max-width: 1010px; 最後內容寬會是 980px */
-}
+/* } */
 
 .album .container {
   /* margin-right: -15px;
@@ -33,12 +33,12 @@ header {
   padding-left: 0px;
 }
 
-.album .row {
-  margin-right: -10%;
-  margin-left: 0;
+/* .album .row { */
+  /* margin-right: -10%;
+  margin-left: 0; */
   /* margin-left: -6%; */
   /* margin-right: 5%; */
-}
+/* } */
 
 .album .row .folder {
   width:170px;
@@ -53,7 +53,7 @@ header {
 .album .row .images {
   /* width:1090px; */
   /* width: 1100px; */
-  width: 1080px;
+  width: 1018px;
   height: 800px;
   /* border: 1px blue solid; */
   display: flex;

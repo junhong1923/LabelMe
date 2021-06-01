@@ -58,7 +58,7 @@ const insertCoordinates = (userId, coordinates) => {
 
 const queryLabels = (imageId) => {
   return new Promise((resolve, reject) => {
-    const sql = "SELECT * FROM (SELECT a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
+    const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
     pool.query(sql, imageId, (err, result) => {
       if (err) reject(err);
       // console.log(result);

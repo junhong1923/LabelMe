@@ -8,6 +8,7 @@ let drawType;
 let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
+let labels;
 
 const initCanvas = (id) => {
   return new fabric.Canvas(id, {
@@ -260,7 +261,7 @@ window.onload = (e) => {
         imageSrc = url.searchParams.get("src");
         if (imageSrc && imageId) {
           renderImageSrc(imageSrc);
-          const labels = await getImageLabels(res.id, imageId);
+          labels = await getImageLabels(res.id, imageId);
           if (!labels.msg) {
             activateLabelBtn(labels);
             renderImageLabels(labels);
@@ -379,6 +380,11 @@ const getImageLabels = (userId, imageId) => {
 };
 
 const renderImageLabels = (labels) => {
+  // variables for render label list table
+  const tableBody = document.querySelector(".canvas .table tbody");
+  tableBody.innerHTML = "";
+  const removeImgPath = "../images/icons/visibility/1x/outline_visibility_black_24dp.png";
+
   console.log(labels);
   labels.forEach(arr => {
     const XY = arr.coordinates_xy;
@@ -393,19 +399,33 @@ const renderImageLabels = (labels) => {
       fill: "transparent"
     });
     canvas.add(label);
+
+    // render label list table
+    const labelId = arr.id;
+    const userId = arr.user_id;
+    const tag = arr.tag;
+    tableBody.innerHTML += `
+      <tr>
+        <th scope="row">${tag}</th>
+        <td>${userId}</td>
+        <td><img id=${labelId} src=${removeImgPath} alt="remove" width="25px" height="25px"></td>
+      </tr>
+    `;
   });
-  // const XY = labels.coordinates_xy;
-  // const WH = labels.coordinates_wh;
-  // const label = new fabric.Rect({
-  //   left: XY.x,
-  //   top: XY.y,
-  //   width: WH.x,
-  //   height: WH.y,
-  //   strokeWidth: 2,
-  //   stroke: "green",
-  //   fill: "transparent"
-  // });
-  // canvas.add(label);
+  tableBody.onclick = (e) => {
+    if (e.target.alt === "remove") {
+      console.log(e.target);
+      const labelId = e.target.id;
+      const targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
+      console.log(targetLabel);
+      console.log(targetLabel[0]);
+      canvas.getObjects().forEach(obj => {
+        if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
+          canvas.remove(obj);
+        }
+      });
+    }
+  };
 };
 
 // get selected canvas object
@@ -418,7 +438,7 @@ const activateLabelBtn = (labels) => {
   LabelBtn.removeAttribute("disabled");
 
   LabelBtn.addEventListener("click", () => {
-    if (canvas.getObjects().length === 1) {
+    if (canvas.getObjects().length === 0) {
       // if only have image, then render label
       renderImageLabels(labels);
     } else {
