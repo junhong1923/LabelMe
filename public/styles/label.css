@@ -55,3 +55,44 @@
 .canvas .board table caption {
   padding-left: 3.5rem;
 }
+
+/* .canvas .label-pane {
+  display: flex;
+} */
+
+.canvas .label-pane .label-pane-title{
+  display: flex;
+  justify-content: space-between;
+}
+
+/* .canvas .label-pane .title{
+  flex-grow: 1;
+} */
+
+.canvas .label-pane .label-pane-content {
+  height: 400px;
+}
+
+.canvas .label-pane .label-btn {
+  display: flex;
+  /* padding: 4px; */
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.canvas .label-pane .label-btn .label-title {
+  width: 165px;
+  padding-left: 8px;
+  overflow: hidden;
+  /* flex-grow: 1; */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas .label-pane .label-btn .label-display {
+  padding-right: 30px;
+} 
+
+.canvas .label-pane .add-btn {
+  padding-left: 70px;
+}

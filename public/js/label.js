@@ -9,6 +9,7 @@ let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
+const addTagBtn = document.querySelector(".canvas .label-pane .add-btn");
 
 const initCanvas = (id) => {
   return new fabric.Canvas(id, {
@@ -417,7 +418,6 @@ const renderImageLabels = (labels) => {
       console.log(e.target);
       const labelId = e.target.id;
       const targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
-      console.log(targetLabel);
       console.log(targetLabel[0]);
       canvas.getObjects().forEach(obj => {
         if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
@@ -452,6 +452,58 @@ const activateLabelBtn = (labels) => {
   });
 };
 
+addTagBtn.onclick = async (e) => {
+  // const {tag, color} = {"face", "rgba(31,119,180,1)"};
+
+  const { value: tagName } = await Swal.fire({
+    title: "Tag Name",
+    text: "Type the name of tage",
+    input: "text",
+    inputPlaceholder: "If the label target is 'face', then name tag 'face",
+    showCancelButton: true,
+    inputValidator: (value) => {
+      if (!value) {
+        return "Tag name is needed!";
+      }
+    }
+  });
+
+  if (tagName) {
+    const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
+    let underLimit = true;
+    let color;
+    if (addTagBtn.parentNode.childElementCount - 1 < 10) {
+      color = colorArr[addTagBtn.parentNode.childElementCount - 1];
+    } else {
+      underLimit = false;
+      Swal.fire({
+        icon: "warning",
+        title: "Limited...",
+        text: "Ten tags are the limit."
+      });
+    }
+    if (underLimit) {
+      const newTag = document.createElement("div");
+      newTag.className = "label-btn";
+      newTag.setAttribute("title", tagName);
+      newTag.setAttribute("data-id", tagName);
+      const tagHtml = `
+        <div class="label-btn" title=${tagName} data-id=${tagName}>
+          <div class="label-color">
+            <svg width="16px" height="16px">
+              <rect x="0" y="0" width="16" height="16" stroke="grey" fill=${color}></rect>
+            </svg>
+          </div>
+          <div class="label-title">${tagName}</div>
+          <div class="label-display"><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="label-display" width="20px" height="20px"></div>
+        </div>
+      `;
+      newTag.innerHTML = tagHtml;
+      e.target.parentNode.insertBefore(newTag, addTagBtn);
+    }
+  }
+};
+
 const saveFile = () => {
   const link = document.getElementById("download");
   // 5/26 如果是從主頁點近來開始的，會沒有file.name。可能要從url去切出檔名
@@ -473,6 +525,7 @@ const saveFile = () => {
 
 const zoomInBtn = document.getElementById("zoomInBtn");
 const zoomOutBtn = document.getElementById("zoomOutBtn");
+// const zoomFitBtn = document.getElementById("zoomFitBtn");
 const showZoom = document.getElementById("zoom");
 
 const center = canvas.getCenter();
@@ -491,6 +544,10 @@ canvas.on("mouse:wheel", (event) => {
   const newZoom = deltaY / 1000;
   setZoom(newZoom, { x: event.e.offsetX, y: event.e.offsetY });
 });
+
+// zoomFitBtn.onclick = () => {
+//   canvas.zoomToPoint({ x: canvas.width, y: canvas.height }, 1);
+// };
 
 // 5/17
 const invertColor = () => {
