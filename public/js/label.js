@@ -1,6 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 const token = localStorage.getItem("token");
+const boundingBtn = document.querySelector("#bounding");
+const undo = [];
+const redo = [];
+const undoBtn = document.querySelector("#undo");
+const redoBtn = document.querySelector("#redo");
 let imageId;
 let imageSrc;
 let file;
@@ -86,9 +91,16 @@ const setPanEvents = (canvas) => {
     } else if (mousePressed && currentMode === modes.drawing) {
       // canvas.isDrawingMode = true;
       // canvas.renderAll();
+    } else if (mousePressed && currentMode === modes.bounding) {
+      canvas.setCursor("crosshair");
+      canvas.renderAll();
+    } else if (currentMode === modes.bounding) {
+      canvas.setCursor("crosshair");
+      canvas.renderAll();
     }
 
     if (mousePressed && currentMode === "bounding") {
+      // canvas.setCursor("crosshair");
       const rect = new fabric.Rect({
         left: event.pointer.x,
         top: event.pointer.y,
@@ -112,13 +124,12 @@ const setPanEvents = (canvas) => {
       rect.setCoords();
 
       for (let i = 0; i < canvas.getObjects().length - 1; i++) {
-        // if (canvas.getObjects()[i]._element === undefined || canvas.getObjects()[i].stroke === "rgb(0, 0, 0)") {
-        //   canvas.remove(canvas.getObjects()[i]);
-        // }
         if (canvas.getObjects()[i].id === mouseClickId && canvas.getObjects()[i].stroke === "green") {
           canvas.remove(canvas.getObjects()[i]);
         }
       }
+      canvas.renderAll();
+      // state = canvas.toJSON();
       // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
     }
   });
@@ -131,6 +142,8 @@ const setPanEvents = (canvas) => {
       canvas.setCursor("grab");
       canvas.renderAll();
     }
+    // canvas.renderAll();
+    // state = canvas.toJSON();
   });
 
   canvas.on("mouse:up", (event) => {
@@ -138,6 +151,7 @@ const setPanEvents = (canvas) => {
     mouseClickId += 1;
     canvas.setCursor("default");
     canvas.renderAll();
+    // state = canvas.toJSON();
   });
 };
 
@@ -181,11 +195,12 @@ const groupObjects = (canvas, group, shouldGroup) => {
 };
 
 const canvas = initCanvas("canvas");
+canvas.hoverCursor = "pointer";
 // const svgState = {};
 let mousePressed = false;
 let mouseClickId = 0;
 const group = {};
-
+let state = canvas.toJSON();
 let currentMode;
 
 const modes = {
@@ -217,7 +232,8 @@ reader.addEventListener("load", () => { // Loading Image
       top: (canvas.height - img.height) / 2,
       selectable: false
     });
-    canvas.add(img);
+    // canvas.add(img);
+    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
     canvas.requestRenderAll();
   });
 });
@@ -266,6 +282,7 @@ window.onload = (e) => {
           if (!labels.msg) {
             activateLabelBtn(labels);
             renderImageLabels(labels);
+            state = canvas.toJSON();
           }
         }
 
@@ -453,8 +470,6 @@ const activateLabelBtn = (labels) => {
 };
 
 addTagBtn.onclick = async (e) => {
-  // const {tag, color} = {"face", "rgba(31,119,180,1)"};
-
   const { value: tagName } = await Swal.fire({
     title: "Tag Name",
     text: "Type the name of tage",
@@ -579,6 +594,49 @@ const invertColor = () => {
 
   canvas.getContext("2d").putImageData(pixels, 0, 0);
 };
+
+// 當 canvas 中的物件被修改時，先將之前的 state push 進入 undo 裡面，再把目前的 state 儲存起來
+canvas.on("object:modified", e => {
+  undo.push(state);
+  state = JSON.stringify(canvas);
+  redo.length = 0;
+  console.log("modified");
+});
+
+// canvas.on("object:removed", e => {
+//   undo.push(state);
+//   state = JSON.stringify(canvas);
+//   redo.length = 0;
+//   console.log("removed");
+// });
+
+// 把最後一筆被修改的內容透過 pop 拿出來讀取，再將 state 更改為上一步的狀態。
+function doUndo () {
+  if (!undo.length) {
+    alert("目前沒有動作可復原");
+    return;
+  }
+  const lastJSON = undo.pop();
+  canvas.loadFromJSON(lastJSON);
+  // 在做上一步時把目前狀態 push 到 redo 陣列
+  redo.push(state);
+  state = lastJSON;
+}
+
+function doRedo () {
+  if (!redo.length) {
+    alert("目前沒有動作可復原");
+    return;
+  }
+  const lastJSON = redo.pop();
+  canvas.loadFromJSON(lastJSON);
+  // 在做下一步時把目前狀態 push 到 undo 陣列
+  undo.push(state);
+  state = lastJSON;
+}
+
+undoBtn.addEventListener("click", doUndo);
+redoBtn.addEventListener("click", doRedo);
 
 signout.onclick = () => {
   localStorage.removeItem("token");
