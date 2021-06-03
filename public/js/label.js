@@ -14,6 +14,7 @@ let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
+const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
 const tagsDiv = document.querySelector("#tags");
 let selectedTag;
 let tagColor;
@@ -30,13 +31,13 @@ const toggleMode = (e, mode) => {
   if (mode === modes.pan) {
     if (currentMode === modes.pan) { // 取消拖拉移動整個畫布
       currentMode = "";
-      e.className = "btn btn-secondary";
+      // e.className = "btn btn-secondary";
       console.log("取消拖拉移動整個畫布");
     } else { // 拖拉移動整個畫布
       currentMode = modes.pan;
       canvas.isDrawingMode = false;
       // canvas.renderAll();
-      e.className = "btn btn-secondary active";
+      // e.className = "btn btn-secondary active";
       console.log("拖拉移動整個畫布");
     }
   } else if (mode === modes.drawing) { // draw line
@@ -58,13 +59,13 @@ const toggleMode = (e, mode) => {
       currentMode = "";
       canvas.isDrawingMode = false;
       // canvas.renderAll();
-      e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle";
+      canvas.getObjects().forEach(obj => { obj.selectable = true; });
     } else { // 拉框模式
       // canvas.freeDrawingBrush.color = "green";
       // canvas.freeDrawingBrush.width = 3;
       currentMode = modes.bounding;
       canvas.isDrawingMode = false;
-      e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle active";
+      canvas.getObjects().forEach(obj => { obj.selectable = false; });
     }
   } else if (mode === modes.poly) {
     if (currentMode === modes.poly) { // 取消poly模式
@@ -380,17 +381,6 @@ const renderImageSrc = (url) => {
     canvas.renderAll();
   });
   // 3rd param: , { crossOrigin: "Anonymous" }
-
-  // using img element
-  // const imgElement = document.createElement("img");
-  // imgElement.src = url;
-  // imgElement.crossOrigin = "Anonymous";
-  // const imgInstance = new fabric.Image(imgElement, {
-  //   left: (canvas.width - imgElement.width) / 2,
-  //   top: (canvas.height - imgElement.height) / 2,
-  //   selectable: false
-  // });
-  // canvas.add(imgInstance);
 };
 
 const getImageLabels = (userId, imageId) => {
@@ -415,6 +405,16 @@ const renderImageLabels = (labels) => {
   const removeImgPath = "../images/icons/visibility/1x/outline_visibility_black_24dp.png";
 
   console.log(labels);
+  // 6/2 先把tag載入Labels tab
+  const tagSet = new Set();
+  labels.forEach(arr => { tagSet.add(arr.tag); });
+
+  const tagColorMap = {};
+  Array.from(tagSet).forEach(function (value, idx) {
+    tagColorMap[value] = colorArr[idx];
+  });
+
+  // 取得對應的顏色再渲染
   labels.forEach(arr => {
     const XY = arr.coordinates_xy;
     const WH = arr.coordinates_wh;
@@ -424,10 +424,15 @@ const renderImageLabels = (labels) => {
       width: WH.x,
       height: WH.y,
       strokeWidth: 2,
-      stroke: "green",
+      stroke: tagColorMap[arr.tag],
       fill: "transparent"
     });
+    label.tag = arr.tag;
     canvas.add(label);
+
+    // Labels > Tags
+    LabelTagsDOM = genLabelTagsDOM(arr.tag, tagColorMap[arr.tag]);
+    tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
 
     // render label list table
     const labelId = arr.id;
@@ -495,7 +500,6 @@ addTagBtn.onclick = async (e) => {
   });
 
   if (tagName) {
-    const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
     let underLimit = true;
     let color;
     if (addTagBtn.parentNode.childElementCount - 1 < 10) {
@@ -509,25 +513,28 @@ addTagBtn.onclick = async (e) => {
       });
     }
     if (underLimit) {
-      const newTag = document.createElement("div");
-      newTag.className = "label-btn";
-      newTag.setAttribute("title", tagName);
-      newTag.setAttribute("data-id", tagName);
-      const tagHtml = `
-
-          <div id="${color}" class="label-color">
-            <svg width="16px" height="16px">
-              <rect x="0" y="0" width="16" height="16" stroke="grey" fill=${color}></rect>
-            </svg>
-          </div>
-          <div class="label-title">${tagName}</div>
-          <div class="label-display"><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="label-display" width="20px" height="20px"></div>
-
-      `;
-      newTag.innerHTML = tagHtml;
-      e.target.parentNode.insertBefore(newTag, addTagBtn);
+      newTag = genLabelTagsDOM(tagName, color);
+      tagsDiv.insertBefore(newTag, addTagBtn);
     }
   }
+};
+
+const genLabelTagsDOM = (tagName, color) => {
+  const newTag = document.createElement("div");
+  newTag.className = "label-btn";
+  newTag.setAttribute("title", tagName);
+  newTag.setAttribute("data-id", tagName);
+  const tagHtml = `
+      <div id="${color}" class="label-color">
+        <svg width="16px" height="16px">
+          <rect x="0" y="0" width="16" height="16" stroke="grey" fill=${color}></rect>
+        </svg>
+      </div>
+      <div class="label-title">${tagName}</div>
+      <div class="label-display"><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="label-display" width="20px" height="20px"></div>
+  `;
+  newTag.innerHTML = tagHtml;
+  return newTag;
 };
 
 tagsDiv.onclick = (e) => {
@@ -540,6 +547,8 @@ tagsDiv.onclick = (e) => {
     selectedTag = e.target.textContent;
     tagColor = e.target.previousElementSibling.id;
   }
+
+  // display or not
 };
 
 const saveFile = () => {
