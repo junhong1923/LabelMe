@@ -14,6 +14,9 @@ let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
+const tagsDiv = document.querySelector("#tags");
+let selectedTag;
+let tagColor;
 const addTagBtn = document.querySelector(".canvas .label-pane .add-btn");
 
 const initCanvas = (id) => {
@@ -100,37 +103,44 @@ const setPanEvents = (canvas) => {
     }
 
     if (mousePressed && currentMode === "bounding") {
-      // canvas.setCursor("crosshair");
-      const rect = new fabric.Rect({
-        left: event.pointer.x,
-        top: event.pointer.y,
-        strokeWidth: 2,
-        stroke: "green",
-        fill: "#00000000",
-        width: 0,
-        height: 0,
-        hasRotatingPoint: false
-      });
-      rect.id = mouseClickId; // uuid();
+      if (!(selectedTag && tagColor)) {
+        Swal.fire({
+          title: "Please Create or Select a tag.",
+          text: "See right side bar there.",
+          icon: "info"
+        });
+      } else {
+        const rect = new fabric.Rect({
+          left: event.pointer.x,
+          top: event.pointer.y,
+          strokeWidth: 2,
+          stroke: tagColor,
+          fill: "#00000000",
+          width: 0,
+          height: 0,
+          hasRotatingPoint: false
+        });
+        rect.id = mouseClickId; // uuid();
+        rect.tag = selectedTag;
+        canvas.add(rect);
 
-      canvas.add(rect);
+        rect.set({
+          width: Math.abs(lastX - event.pointer.x),
+          height: Math.abs(lastY - event.pointer.y)
+        });
+        rect.set({ left: Math.min(event.pointer.x, lastX) });
+        rect.set({ top: Math.min(event.pointer.y, lastY) });
+        rect.setCoords();
 
-      rect.set({
-        width: Math.abs(lastX - event.pointer.x),
-        height: Math.abs(lastY - event.pointer.y)
-      });
-      rect.set({ left: Math.min(event.pointer.x, lastX) });
-      rect.set({ top: Math.min(event.pointer.y, lastY) });
-      rect.setCoords();
-
-      for (let i = 0; i < canvas.getObjects().length - 1; i++) {
-        if (canvas.getObjects()[i].id === mouseClickId && canvas.getObjects()[i].stroke === "green") {
-          canvas.remove(canvas.getObjects()[i]);
+        for (let i = 0; i < canvas.getObjects().length - 1; i++) {
+          if (canvas.getObjects()[i].id === mouseClickId && canvas.getObjects()[i].stroke === tagColor) {
+            canvas.remove(canvas.getObjects()[i]);
+          }
         }
+        canvas.renderAll();
+        // state = canvas.toJSON();
+        // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
       }
-      canvas.renderAll();
-      // state = canvas.toJSON();
-      // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
     }
   });
 
@@ -317,6 +327,7 @@ const commitLabel = (canvas) => {
   canvasJSON = canvas.toJSON();
 
   let coordinates;
+  // 6/2 發現這樣只會存最後一筆標註而已
   canvasJSON.objects.forEach((arr) => {
     if (arr.type === "rect") {
       coordinates = { imageId: imageId, type: "bounding", x: arr.left, y: arr.top, width: arr.width, height: arr.height };
@@ -503,19 +514,31 @@ addTagBtn.onclick = async (e) => {
       newTag.setAttribute("title", tagName);
       newTag.setAttribute("data-id", tagName);
       const tagHtml = `
-        <div class="label-btn" title=${tagName} data-id=${tagName}>
-          <div class="label-color">
+
+          <div id="${color}" class="label-color">
             <svg width="16px" height="16px">
               <rect x="0" y="0" width="16" height="16" stroke="grey" fill=${color}></rect>
             </svg>
           </div>
           <div class="label-title">${tagName}</div>
           <div class="label-display"><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="label-display" width="20px" height="20px"></div>
-        </div>
+
       `;
       newTag.innerHTML = tagHtml;
       e.target.parentNode.insertBefore(newTag, addTagBtn);
     }
+  }
+};
+
+tagsDiv.onclick = (e) => {
+  if (e.target.className === "label-title") {
+    for (let i = 0; i < e.target.parentNode.parentNode.childElementCount - 1; i++) {
+      e.target.parentNode.parentNode.children[i].className = "label-btn";
+    }
+
+    e.target.parentNode.className += " selected";
+    selectedTag = e.target.textContent;
+    tagColor = e.target.previousElementSibling.id;
   }
 };
 
@@ -602,13 +625,6 @@ canvas.on("object:modified", e => {
   redo.length = 0;
   console.log("modified");
 });
-
-// canvas.on("object:removed", e => {
-//   undo.push(state);
-//   state = JSON.stringify(canvas);
-//   redo.length = 0;
-//   console.log("removed");
-// });
 
 // 把最後一筆被修改的內容透過 pop 拿出來讀取，再將 state 更改為上一步的狀態。
 function doUndo () {

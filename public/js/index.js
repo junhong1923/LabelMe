@@ -1,5 +1,3 @@
-// import Swal from "sweetalert2";
-// const Swal = require("sweetalert2");
 const imageRow = document.querySelector(".album .container .row");
 const filterTab = document.querySelector("#myTab");
 const selectedTabContent = document.querySelector("#myTabContent");
