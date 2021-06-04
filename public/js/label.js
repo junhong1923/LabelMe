@@ -31,13 +31,11 @@ const toggleMode = (e, mode) => {
   if (mode === modes.pan) {
     if (currentMode === modes.pan) { // 取消拖拉移動整個畫布
       currentMode = "";
-      // e.className = "btn btn-secondary";
       console.log("取消拖拉移動整個畫布");
     } else { // 拖拉移動整個畫布
       currentMode = modes.pan;
       canvas.isDrawingMode = false;
       // canvas.renderAll();
-      // e.className = "btn btn-secondary active";
       console.log("拖拉移動整個畫布");
     }
   } else if (mode === modes.drawing) { // draw line
@@ -100,6 +98,7 @@ const setPanEvents = (canvas) => {
       canvas.renderAll();
     } else if (currentMode === modes.bounding) {
       canvas.setCursor("crosshair");
+      // maybe 加入十字座標虛線？
       canvas.renderAll();
     }
 
@@ -111,6 +110,8 @@ const setPanEvents = (canvas) => {
           icon: "info"
         });
       } else {
+        state = canvas.toJSON();
+        undo.push(state);
         const rect = new fabric.Rect({
           left: event.pointer.x,
           top: event.pointer.y,
@@ -139,8 +140,9 @@ const setPanEvents = (canvas) => {
           }
         }
         canvas.renderAll();
+        // canvas.fire("object:modified");
         // state = canvas.toJSON();
-        // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
+        // undo.push(state);
       }
     }
   });
@@ -327,17 +329,22 @@ const commitLabel = (canvas) => {
   // console.log(canvas.toJSON());
   canvasJSON = canvas.toJSON();
 
-  let coordinates;
-  // 6/2 發現這樣只會存最後一筆標註而已
-  canvasJSON.objects.forEach((arr) => {
-    if (arr.type === "rect") {
-      coordinates = { imageId: imageId, type: "bounding", x: arr.left, y: arr.top, width: arr.width, height: arr.height };
-    }
+  const coordinates = [];
+  canvasJSON.objects.forEach((arr, idx) => {
+    const labelId = canvas.getObjects()[idx].labelId;
+    const tag = canvas.getObjects()[idx].tag;
+    const scale = { X: arr.scaleX, Y: arr.scaleY };
+    coordinates.push({
+      imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
+    });
   });
-
+  console.log(coordinates); // 原始labels也傳回後端檢查
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
-    body: JSON.stringify(coordinates),
+    body: JSON.stringify({
+      before: labels,
+      after: coordinates
+    }),
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
   })
     .then((res) => {
@@ -398,14 +405,15 @@ const getImageLabels = (userId, imageId) => {
   });
 };
 
-const renderImageLabels = (labels) => {
+const renderImageLabels = (labels, renderTags = true) => {
   // variables for render label list table
   const tableBody = document.querySelector(".canvas .table tbody");
   tableBody.innerHTML = "";
-  const removeImgPath = "../images/icons/visibility/1x/outline_visibility_black_24dp.png";
+  // const removeImgPath = "../images/icons/visibility/1x/outline_visibility_black_24dp.png";
+  const removeImgPath = "../images/icons/trash.svg";
 
   console.log(labels);
-  // 6/2 先把tag載入Labels tab
+  // 6/2 get tag and color map
   const tagSet = new Set();
   labels.forEach(arr => { tagSet.add(arr.tag); });
 
@@ -414,8 +422,8 @@ const renderImageLabels = (labels) => {
     tagColorMap[value] = colorArr[idx];
   });
 
-  // 取得對應的顏色再渲染
-  labels.forEach(arr => {
+  // using tag and color map to render labels
+  labels.forEach((arr, idx) => {
     const XY = arr.coordinates_xy;
     const WH = arr.coordinates_wh;
     const label = new fabric.Rect({
@@ -427,28 +435,35 @@ const renderImageLabels = (labels) => {
       stroke: tagColorMap[arr.tag],
       fill: "transparent"
     });
+    label.labelId = arr.id;
     label.tag = arr.tag;
     canvas.add(label);
 
-    // Labels > Tags
-    LabelTagsDOM = genLabelTagsDOM(arr.tag, tagColorMap[arr.tag]);
-    tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
+    // render Tags inside Labels
+    if (renderTags) {
+      LabelTagsDOM = genLabelTagsDOM(arr.tag, tagColorMap[arr.tag]);
+      tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
+    }
 
     // render label list table
     const labelId = arr.id;
-    const userId = arr.user_id;
+    const labeler = arr.labeler;
     const tag = arr.tag;
     tableBody.innerHTML += `
-      <tr>
-        <th scope="row">${tag}</th>
-        <td>${userId}</td>
+      <tr id=${arr.id}>
+        <th scope="row">${idx + 1}</th>
+        <td>${tag}</td>
+        <td>${labeler}</td>
         <td><img id=${labelId} src=${removeImgPath} alt="remove" width="25px" height="25px"></td>
       </tr>
     `;
   });
+
+  // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
   tableBody.onclick = (e) => {
     if (e.target.alt === "remove") {
-      console.log(e.target);
+      // console.log(e.target);
+      console.log("tableBody onclick, remove label...");
       const labelId = e.target.id;
       const targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
       console.log(targetLabel[0]);
@@ -473,19 +488,21 @@ const activateLabelBtn = (labels) => {
   LabelBtn.addEventListener("click", () => {
     if (canvas.getObjects().length === 0) {
       // if only have image, then render label
-      renderImageLabels(labels);
+      renderImageLabels(labels, renderTags = false);
     } else {
       canvas.getObjects().forEach(arr => {
-        // if arrtibute stroke = green, then remove this bounding coordinates
-        if (arr.stroke === "green") {
-          canvas.remove(arr);
-        }
+        canvas.remove(arr);
       });
     }
   });
 };
 
 addTagBtn.onclick = async (e) => {
+  const tagsArr = [];
+  for (let i = 0; i < e.target.parentNode.childElementCount - 1; i++) {
+    tagsArr.push(e.target.parentNode.children[i].children[1].textContent.toLowerCase());
+  }
+
   const { value: tagName } = await Swal.fire({
     title: "Tag Name",
     text: "Type the name of tage",
@@ -495,6 +512,9 @@ addTagBtn.onclick = async (e) => {
     inputValidator: (value) => {
       if (!value) {
         return "Tag name is needed!";
+      }
+      if (tagsArr.includes(value.toLowerCase())) {
+        return `${value} already existed.`;
       }
     }
   });
@@ -512,6 +532,7 @@ addTagBtn.onclick = async (e) => {
         text: "Ten tags are the limit."
       });
     }
+
     if (underLimit) {
       newTag = genLabelTagsDOM(tagName, color);
       tagsDiv.insertBefore(newTag, addTagBtn);
@@ -531,7 +552,7 @@ const genLabelTagsDOM = (tagName, color) => {
         </svg>
       </div>
       <div class="label-title">${tagName}</div>
-      <div class="label-display"><img src="../images/icons/visibility/1x/outline_visibility_black_24dp.png" alt="label-display" width="20px" height="20px"></div>
+      <div class="label-display"><img src="../images/icons/Eye-Show.svg" alt="label-display" width="20px" height="20px"></div>
   `;
   newTag.innerHTML = tagHtml;
   return newTag;
@@ -586,11 +607,11 @@ function setZoom (zoom, point = { x: center.left, y: center.top }) {
 
 zoomInBtn.addEventListener("click", () => setZoom(0.1));
 zoomOutBtn.addEventListener("click", () => setZoom(-0.1));
-canvas.on("mouse:wheel", (event) => {
-  const deltaY = event.e.deltaY;
-  const newZoom = deltaY / 1000;
-  setZoom(newZoom, { x: event.e.offsetX, y: event.e.offsetY });
-});
+// canvas.on("mouse:wheel", (event) => {
+//   const deltaY = event.e.deltaY;
+//   const newZoom = deltaY / 1000;
+//   setZoom(newZoom, { x: event.e.offsetX, y: event.e.offsetY });
+// });
 
 // zoomFitBtn.onclick = () => {
 //   canvas.zoomToPoint({ x: canvas.width, y: canvas.height }, 1);
