@@ -10,15 +10,41 @@ const saveOriImage = async (req, res) => {
   }
 };
 
+const compareLabelsPair = (beforeLabels, afterLabels) => {
+  const checkedLabelsArr = [];
+  afterLabels.forEach(afterObj => {
+    if (afterObj.labelId) {
+      // 有 label_id 則要檢查 originalLabels, obj 是否重複
+      beforeLabels.forEach(beforeObj => {
+        if (afterObj.labelId === beforeObj.id) {
+          if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
+            console.log("remove duplicated coordinate");
+          } else {
+            checkedLabelsArr.push(afterObj);
+          }
+        }
+      });
+    } else {
+      checkedLabelsArr.push(afterObj);
+    }
+  });
+  // console.log("----");
+  // console.log(checkedLabelsArr);
+  return checkedLabelsArr;
+};
+
 const saveCoordinates = async (req, res) => {
   const userId = req.user.id;
-  const coordinates = req.body;
-  const result = await Label.insertCoordinates(userId, coordinates);
+  // console.log(req.body);
 
-  if (result.affectedRows === 1) {
-    res.status(200).send({ userId, coordinates });
-  } else {
-    res.status(500).send({ error: "Something wrong when insert coordinates" });
+  const originalLabels = req.body.before;
+  const newLabels = req.body.after;
+  const checkedLabels = compareLabelsPair(originalLabels, newLabels);
+
+  const result = await Label.insertCoordinates(userId, checkedLabels);
+  console.log(result.msg);
+  if (result.msg) {
+    res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
   }
 };
 
