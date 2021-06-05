@@ -409,10 +409,10 @@ const renderImageLabels = (labels, renderTags = true) => {
   // variables for render label list table
   const tableBody = document.querySelector(".canvas .table tbody");
   tableBody.innerHTML = "";
-  // const removeImgPath = "../images/icons/visibility/1x/outline_visibility_black_24dp.png";
-  const removeImgPath = "../images/icons/trash.svg";
+  const displayImgPath = "../images/icons/Eye-Show.svg";
 
   console.log(labels);
+  const imgOwner = labels[0].owner;
   // 6/2 get tag and color map
   const tagSet = new Set();
   labels.forEach(arr => { tagSet.add(arr.tag); });
@@ -448,30 +448,75 @@ const renderImageLabels = (labels, renderTags = true) => {
     // render label list table
     const labelId = arr.id;
     const labeler = arr.labeler;
+
+    let tempHtml;
+    if (labeler === imgOwner) {
+      tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
+    } else {
+      tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
+    }
+
     const tag = arr.tag;
     tableBody.innerHTML += `
-      <tr id=${arr.id}>
+      <tr id=${labelId}>
         <th scope="row">${idx + 1}</th>
         <td>${tag}</td>
         <td>${labeler}</td>
-        <td><img id=${labelId} src=${removeImgPath} alt="remove" width="25px" height="25px"></td>
+        <td><img id=${labelId} class="active" src=${displayImgPath} alt="display" width="25px" height="25px"></td>
+        ${tempHtml}
       </tr>
     `;
   });
 
   // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
   tableBody.onclick = (e) => {
+    const labelId = parseInt(e.target.id);
     if (e.target.alt === "remove") {
-      // console.log(e.target);
-      console.log("tableBody onclick, remove label...");
-      const labelId = e.target.id;
-      const targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
-      console.log(targetLabel[0]);
-      canvas.getObjects().forEach(obj => {
-        if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
-          canvas.remove(obj);
+      // console.log(labelId);
+      Swal.fire({
+        title: "Are you sure?",
+        text: "Delete this label.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          console.log("tableBody onclick, delete label...");
+
+          const targetLabel = labels.filter(arr => arr.id === labelId);
+          console.log(targetLabel[0]);
+          canvas.getObjects().forEach(obj => {
+            if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
+              canvas.remove(obj);
+            }
+          });
+
+          Swal.fire("Delete!", "This label has been deleted.", "success");
         }
       });
+    } else if (e.target.alt === "display") {
+      // targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
+      if (e.target.className === "active") {
+        canvas.getObjects().forEach(obj => {
+          if (obj.labelId === labelId) {
+            obj.opacity = 0;
+            canvas.renderAll();
+          }
+        });
+        e.target.className = "";
+        e.target.src = "../images/icons/Eye-Show-Disable.svg";
+      } else {
+        canvas.getObjects().forEach(obj => {
+          if (obj.labelId === labelId) {
+            obj.opacity = 1;
+            canvas.renderAll();
+          }
+        });
+        e.target.className = "active";
+        e.target.src = displayImgPath;
+      }
     }
   };
 };
