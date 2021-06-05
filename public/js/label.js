@@ -172,7 +172,9 @@ const setPanEvents = (canvas) => {
 
     if (canvasObjCount !== canvas.getObjects().length) {
       // render the latest object to label table
+      const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
       console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
+      genLabelTable(labels[0].owner, "labeler", latestObj.id, latestObj.tag, "your1", remove = true);
     }
   });
 };
@@ -513,9 +515,9 @@ const renderImageLabels = (labels, renderTags = true) => {
   };
 };
 
-const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue) => {
+const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false) => {
   let tempHtml;
-  if (labeler === imgOwner) {
+  if (labeler === imgOwner || remove) {
     tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
   } else {
     tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
