@@ -19,6 +19,8 @@ const tagsDiv = document.querySelector("#tags");
 let selectedTag;
 let tagColor;
 const addTagBtn = document.querySelector(".canvas .label-pane .add-btn");
+const tableBody = document.querySelector(".canvas .table tbody");
+let canvasObjCount = 0;
 
 const initCanvas = (id) => {
   return new fabric.Canvas(id, {
@@ -122,7 +124,7 @@ const setPanEvents = (canvas) => {
           height: 0,
           hasRotatingPoint: false
         });
-        rect.id = mouseClickId; // uuid();
+        rect.id = "fresh_" + mouseClickId;
         rect.tag = selectedTag;
         canvas.add(rect);
 
@@ -135,7 +137,7 @@ const setPanEvents = (canvas) => {
         rect.setCoords();
 
         for (let i = 0; i < canvas.getObjects().length - 1; i++) {
-          if (canvas.getObjects()[i].id === mouseClickId && canvas.getObjects()[i].stroke === tagColor) {
+          if (canvas.getObjects()[i].id === `fresh_${mouseClickId}` && canvas.getObjects()[i].stroke === tagColor) {
             canvas.remove(canvas.getObjects()[i]);
           }
         }
@@ -148,15 +150,17 @@ const setPanEvents = (canvas) => {
   });
 
   canvas.on("mouse:down", (event) => {
+    // console.log(event.target); // type
     mousePressed = true;
     [lastX, lastY] = [event.pointer.x, event.pointer.y];
-    console.log(currentMode);
+    console.log("CurrentMode:", currentMode);
     if (currentMode === modes.pan) {
       canvas.setCursor("grab");
       canvas.renderAll();
     }
     // canvas.renderAll();
     // state = canvas.toJSON();
+    canvasObjCount = canvas.getObjects().length;
   });
 
   canvas.on("mouse:up", (event) => {
@@ -165,6 +169,11 @@ const setPanEvents = (canvas) => {
     canvas.setCursor("default");
     canvas.renderAll();
     // state = canvas.toJSON();
+
+    if (canvasObjCount !== canvas.getObjects().length) {
+      // render the latest object to label table
+      console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
+    }
   });
 };
 
@@ -407,9 +416,7 @@ const getImageLabels = (userId, imageId) => {
 
 const renderImageLabels = (labels, renderTags = true) => {
   // variables for render label list table
-  const tableBody = document.querySelector(".canvas .table tbody");
   tableBody.innerHTML = "";
-  const displayImgPath = "../images/icons/Eye-Show.svg";
 
   console.log(labels);
   const imgOwner = labels[0].owner;
@@ -448,24 +455,9 @@ const renderImageLabels = (labels, renderTags = true) => {
     // render label list table
     const labelId = arr.id;
     const labeler = arr.labeler;
-
-    let tempHtml;
-    if (labeler === imgOwner) {
-      tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
-    } else {
-      tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
-    }
-
     const tag = arr.tag;
-    tableBody.innerHTML += `
-      <tr id=${labelId}>
-        <th scope="row">${idx + 1}</th>
-        <td>${tag}</td>
-        <td>${labeler}</td>
-        <td><img id=${labelId} class="active" src=${displayImgPath} alt="display" width="25px" height="25px"></td>
-        ${tempHtml}
-      </tr>
-    `;
+
+    genLabelTable(imgOwner, labeler, labelId, tag, `shared${idx + 1}`);
   });
 
   // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
@@ -515,10 +507,29 @@ const renderImageLabels = (labels, renderTags = true) => {
           }
         });
         e.target.className = "active";
-        e.target.src = displayImgPath;
+        e.target.src = "../images/icons/Eye-Show.svg";
       }
     }
   };
+};
+
+const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue) => {
+  let tempHtml;
+  if (labeler === imgOwner) {
+    tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
+  } else {
+    tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
+  }
+
+  tableBody.innerHTML += `
+    <tr id=${labelId}>
+      <th scope="row">${rowValue}</th>
+      <td>${tag}</td>
+      <td>${labeler}</td>
+      <td><img id=${labelId} class="active" src="../images/icons/Eye-Show.svg" alt="display" width="25px" height="25px"></td>
+      ${tempHtml}
+    </tr>
+  `;
 };
 
 // get selected canvas object
