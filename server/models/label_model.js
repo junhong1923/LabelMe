@@ -1,7 +1,7 @@
 const { pool } = require("./mysqlcon");
 
 // 5/25 need to check the total capacity before insert images
-const insertOriginalImage = (userId, imgSize, imgPath) => {
+const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, conn) => {
       if (err) reject(err);
@@ -11,7 +11,7 @@ const insertOriginalImage = (userId, imgSize, imgPath) => {
           reject(err);
         } else {
           // 1. insert userId, imgPath into original_image
-          conn.query("INSERT INTO original_image SET image_path = ?, user_id = ?", [imgPath, userId], (err, result) => {
+          conn.query("INSERT INTO original_image SET file_name = ?, image_path = ?, user_id = ?", [imgFileName, imgPath, userId], (err, result) => {
             if (err) {
               conn.rollback(() => { conn.release(); });
               reject(err);
