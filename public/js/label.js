@@ -313,6 +313,18 @@ window.onload = (e) => {
         }
 
         // Upload Original Image
+        const uploadBtn = document.querySelector(".upload-btn");
+        uploadBtn.onclick = (e) => {
+          Swal.fire({
+            toast: true,
+            icon: "success",
+            title: "Uploading",
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+        };
         const imgForm = document.querySelector(".form-img");
         imgForm.onsubmit = submitted.bind(imgForm);
       }

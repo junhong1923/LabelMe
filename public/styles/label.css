@@ -1,3 +1,18 @@
+header {
+  font-size: 1.3rem;
+}
+
+.function {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  /* justify-content: space-evenly; */
+}
+
+#myImg {
+  width: 250px;
+}
+
 #share {
   vertical-align: middle;
   color: #28a745;
@@ -26,6 +41,9 @@
   margin-right: 5px;
 }
 
+.container .tool {
+  display: flex;
+}
 
 .canvas {
   display: flex;
@@ -37,6 +55,10 @@
   /* justify-content: center; */
   border:1px solid #000000;
   /* margin-top: 3rem; */
+}
+
+.canvas {
+  background-color: #f8f9fa;
 }
 
 .canvas .board {
@@ -109,4 +131,16 @@
 .canvas .table tbody {
   font-size: 13.5px;
   font-weight: light;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  padding: 3px;
+  /* justify-content: center; */
+  /* align-items: center; */
+}
+
+.result button {
+  margin-bottom: 3px;
 }
