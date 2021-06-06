@@ -73,7 +73,7 @@
             <!-- <input type="file" onchange="loadFile(this);" class="btn btn-secondary active" /> -->
             <div class="btn-group tool-bar" role="group" aria-label="Button group with nested dropdown">
                 <button id="bounding" class="btn" onclick="toggleMode(this, modes.bounding)"><img src="../images/icons/black-24dp-bounding/2x/outline_highlight_alt_black_24dp.png" alt="BoundingBox" width="30px" height="30px"></button>
-                <button id="pan" class="btn" onclick="toggleMode(this, modes.pan)"><img src="../images/icons/move.png" alt="TogglePan" width="30px" height="30px"></button>
+                <button id="pan" class="btn" onclick="toggleMode(this, modes.pan)"><img src="../images/icons/move.svg" alt="TogglePan" width="30px" height="30px"></button>
 
                 <div class="btn-group" role="group">
                     <button id="btnGroupDrop1" type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -81,23 +81,15 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
                         <li><a id="line" onclick="toggleMode(this, modes.drawing)" class="dropdown-item flex-fill">Line</a></li>
-                        <!-- <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill">Bounding Box</a></li> -->
                         <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill"><img src="../images/icons/bounding-box.png" alt="BoundingBox" width="30px" height="30px"></a></li>
-                        
                         <li><a id="poly" onclick="toggleMode(this, modes.poly)" class="dropdown-item flex-fill">Polygon</a></li>
                     </ul>
                 </div>
             </div>
 
-            <!-- 6/1 不太需要group功能 -->
-            <!-- <div class="btn-group">
-                <button class="btn btn-secondary" onclick="groupObjects(canvas, group, true)">Group</button>
-                <button class="btn btn-secondary" onclick="groupObjects(canvas, group, false)">Ungroup</button>
-            </div> -->
-
             <div class="btn-group">
-                <button id="zoomInBtn" class="btn"><img src="../images/icons/zoom-in/1x/outline_zoom_in_black_24dp.png" alt="zoomIn" width="30px" height="30px"></button>
-                <button id="zoomOutBtn" class="btn"><img src="../images/icons/zoom-out/1x/outline_zoom_out_black_24dp.png" alt="zoomOut" width="30px" height="30px"></button>
+                <button id="zoomInBtn" class="btn"><img src="../images/icons/zoom_in_black_24dp.svg" alt="zoomIn" width="30px" height="30px"></button>
+                <button id="zoomOutBtn" class="btn"><img src="../images/icons/zoom_out_black_24dp.svg" alt="zoomOut" width="30px" height="30px"></button>
                 <!-- <button id="zoomFitBtn" class="btn"><img src="../images/icons/fitScreen/1x/outline_fit_screen_black_24dp.png" alt="zoomFit" width="30px" height="30px"></button> -->
                 <label for="zoom">目前縮放：</label>
                 <input type="text" readonly value="100%" id="zoom">
@@ -120,30 +112,17 @@
                 <label class="form-check-label" for="flexSwitchCheckChecked">Show Label</label>
             </div> -->
         </div>
-
+    </div>
         <div class="canvas">
             <canvas id="canvas" width="900" height="700"></canvas>
             <div class="board table-responsive">
 
-              <table class="table table-sm table-hover caption-top table-bordered">
-                <caption>Lists of labels</caption>
-                <thead class="table-light">
-                  <tr>
-                    <!-- <th scope="col">#</th> -->
-                    <th scope="col">Tag</th>
-                    <th scope="col">Labeler</th>
-                    <th scope="col">Display</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    
-                </tbody>
-              </table>
+              
 
               <div class="label-pane">
 
                 <div class="label-pane-title">
-                  <div class="title">Labels</div>
+                  <div class="title">Label Results</div>
                   <div class="form-check form-switch">
                     <input class="form-check-input btn-lg" type="checkbox" id="flexSwitchCheckChecked" checked disabled>
                     <label class="form-check-label" for="flexSwitchCheckChecked"></label>
@@ -153,30 +132,70 @@
                 <div class="label-pane-content">
 
                   <ul class="nav nav-tabs">
+                    
                     <li class="nav-item" role="presentation">
-                      <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab" aria-controls="list" aria-selected="false">List</button>
+                      <button class="nav-link active" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags" type="button" role="tab" aria-controls="tags" aria-selected="true">Tags</button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                      <button class="nav-link" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags" type="button" role="tab" aria-controls="tags" aria-selected="true">Tags</button>
-                    </li>
+
+                    <!-- <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab" aria-controls="list" aria-selected="false">List</button>
+                    </li> -->
+
                   </ul>
 
                   <div class="tab-content">
-                    <div class="tab-pane fade show active" id="list" role="tabpanel" aria-labelledby="list-tab">123</div>
                     
-                    <div class="tab-pane fade" id="tags" role="tabpanel" aria-labelledby="tags-tab">
+                    <div class="tab-pane fade show active" id="tags" role="tabpanel" aria-labelledby="tags-tab">
 
                       <button class="btn add-btn">+ Add tag</button>
 
                     </div>
 
+                    <!-- <div class="tab-pane fade" id="list" role="tabpanel" aria-labelledby="list-tab">123</div> -->
+                    
                   </div>
                 </div>
 
 
               </div>
 
-              <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
+              <!-- <div class="label-list">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab" aria-controls="tags" aria-selected="true">History</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div class="tab-pane fade show active" id="list" role="tabpanel" aria-labelledby="list-tab">
+                    <div class="list-title">
+                      
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+
+
+              <div class="table-responsive">
+                <table class="table table-sm table-hover caption-top table-bordered">
+                  <caption>Lists of labels</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Tag</th>
+                      <th scope="col">Labeler</th>
+                      <th scope="col">Hide</th>
+                      <th scope="col">Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                        
+                  </tbody>
+                </table>
+              </div>
+              
+
+
+              <input type="submit" value="Download labeled json" onclick="saveFile();"></input>
               <a id="download"></a>
 
             </div>
@@ -186,7 +205,7 @@
 
         </div>
 
-    </div>
+    <!-- </div> -->
     <footer class="footer mt-5 text-muted py-5" style="background-color: #e3f2fd;">
         <div class="container">
             <p class="float-end mb-1">
