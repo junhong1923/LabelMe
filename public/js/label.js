@@ -337,9 +337,7 @@ const submitted = (event) => {
 };
 
 const commitLabel = (canvas) => {
-  // console.log(canvas.getObjects());
   // console.log(canvas.toDataURL("image/jpeg")); // base64
-  // console.log(canvas.toJSON());
   canvasJSON = canvas.toJSON();
 
   const coordinates = [];
@@ -351,7 +349,7 @@ const commitLabel = (canvas) => {
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
     });
   });
-  console.log(coordinates); // 原始labels也傳回後端檢查
+  console.log(coordinates);
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
     body: JSON.stringify({
@@ -393,8 +391,6 @@ const renderImageSrc = (url) => {
       top: (canvas.height - img.height) / 2,
       selectable: false
     });
-    // clear would clear labels and images
-    // canvas.add(oImg);
 
     // set background, then would not be clear as other labels
     canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas));
@@ -487,36 +483,23 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
         if (result.isConfirmed) {
           console.log("tableBody onclick, delete label...");
 
-          // 檢查當下點到的那筆，在canvas obj裡面有沒有id，有的話帶表示舊的標註，否則代表當下標的
-          // const removeTargetLabel = canvas.getObjects().filter(arr => arr.labelId === labelId);
+          // remove obj on canvas
           canvas.getObjects().forEach(obj => {
             if (obj.labelId === labelId) {
               canvas.remove(obj);
-              // table list也要刪掉內容
             }
           });
-          // if (canvas.getObjects().filter(arr => arr.labelId === labelId)[0].id) {
-          //   // which means remove others' label
-          //   const targetLabel = labels.filter(arr => arr.id === labelId);
-          //   console.log(targetLabel[0]);
-          //   canvas.getObjects().forEach(obj => {
-          //     if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
-          //       canvas.remove(obj);
-          //     }
-          //   });
-          // } else {
-          //   // which means remove current label by current user in label page
-          //   canvas.getObjects().forEach(obj => {
-          //     if (obj)
-          //     canvas.remove(obj);
-          //   });
-          // }
+          // remove label on table list
+          for (let i = 0; i < tableBody.childElementCount; i++) {
+            if (tableBody.children[i].id === labelId) {
+              tableBody.removeChild(tableBody.children[i]);
+            }
+          }
 
           Swal.fire("Delete!", "This label has been deleted.", "success");
         }
       });
     } else if (e.target.alt === "display") {
-      // targetLabel = labels.filter(arr => arr.id === parseInt(labelId));
       if (e.target.className === "active") {
         canvas.getObjects().forEach(obj => {
           if (obj.labelId === labelId) {
