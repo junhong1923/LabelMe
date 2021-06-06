@@ -6,6 +6,7 @@ const undo = [];
 const redo = [];
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
+let userId;
 let imageId;
 let imageSrc;
 let file;
@@ -124,7 +125,7 @@ const setPanEvents = (canvas) => {
           height: 0,
           hasRotatingPoint: false
         });
-        rect.id = "fresh_" + mouseClickId;
+        rect.labelId = "fresh_" + mouseClickId;
         rect.tag = selectedTag;
         canvas.add(rect);
 
@@ -137,7 +138,7 @@ const setPanEvents = (canvas) => {
         rect.setCoords();
 
         for (let i = 0; i < canvas.getObjects().length - 1; i++) {
-          if (canvas.getObjects()[i].id === `fresh_${mouseClickId}` && canvas.getObjects()[i].stroke === tagColor) {
+          if (canvas.getObjects()[i].labelId === `fresh_${mouseClickId}` && canvas.getObjects()[i].stroke === tagColor) {
             canvas.remove(canvas.getObjects()[i]);
           }
         }
@@ -174,7 +175,7 @@ const setPanEvents = (canvas) => {
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
       console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
-      genLabelTable(labels[0].owner, "labeler", latestObj.id, latestObj.tag, "your1", remove = true);
+      genLabelTable(labels[0].owner, "labeler", latestObj.labelId, latestObj.tag, "your1", remove = true);
     }
   });
 };
@@ -294,6 +295,7 @@ window.onload = (e) => {
         window.location.assign("/html/welcome.html");
       } else {
         // we have userId here: res.id
+        userId = res.id;
         console.log(res);
 
         // if image_id, image_path in url then render that image to canvas
@@ -305,7 +307,7 @@ window.onload = (e) => {
           labels = await getImageLabels(res.id, imageId);
           if (!labels.msg) {
             activateLabelBtn(labels);
-            renderImageLabels(labels);
+            renderImageLabels(labels, renderTags = true, userId);
             state = canvas.toJSON();
           }
         }
@@ -416,7 +418,7 @@ const getImageLabels = (userId, imageId) => {
   });
 };
 
-const renderImageLabels = (labels, renderTags = true) => {
+const renderImageLabels = (labels, renderTags = true, userId) => {
   // variables for render label list table
   tableBody.innerHTML = "";
 
@@ -464,9 +466,15 @@ const renderImageLabels = (labels, renderTags = true) => {
 
   // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
   tableBody.onclick = (e) => {
-    const labelId = parseInt(e.target.id);
+    console.log(e.target);
+    let labelId;
+    if (!e.target.id.includes("fresh")) {
+      labelId = parseInt(e.target.id);
+    } else {
+      labelId = e.target.id;
+    }
+
     if (e.target.alt === "remove") {
-      // console.log(labelId);
       Swal.fire({
         title: "Are you sure?",
         text: "Delete this label.",
@@ -479,13 +487,30 @@ const renderImageLabels = (labels, renderTags = true) => {
         if (result.isConfirmed) {
           console.log("tableBody onclick, delete label...");
 
-          const targetLabel = labels.filter(arr => arr.id === labelId);
-          console.log(targetLabel[0]);
+          // 檢查當下點到的那筆，在canvas obj裡面有沒有id，有的話帶表示舊的標註，否則代表當下標的
+          // const removeTargetLabel = canvas.getObjects().filter(arr => arr.labelId === labelId);
           canvas.getObjects().forEach(obj => {
-            if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
+            if (obj.labelId === labelId) {
               canvas.remove(obj);
+              // table list也要刪掉內容
             }
           });
+          // if (canvas.getObjects().filter(arr => arr.labelId === labelId)[0].id) {
+          //   // which means remove others' label
+          //   const targetLabel = labels.filter(arr => arr.id === labelId);
+          //   console.log(targetLabel[0]);
+          //   canvas.getObjects().forEach(obj => {
+          //     if (obj.left === targetLabel[0].coordinates_xy.x && obj.top === targetLabel[0].coordinates_xy.y) {
+          //       canvas.remove(obj);
+          //     }
+          //   });
+          // } else {
+          //   // which means remove current label by current user in label page
+          //   canvas.getObjects().forEach(obj => {
+          //     if (obj)
+          //     canvas.remove(obj);
+          //   });
+          // }
 
           Swal.fire("Delete!", "This label has been deleted.", "success");
         }
@@ -517,7 +542,7 @@ const renderImageLabels = (labels, renderTags = true) => {
 
 const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false) => {
   let tempHtml;
-  if (labeler === imgOwner || remove) {
+  if (userId === imgOwner || remove) {
     tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
   } else {
     tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
@@ -546,7 +571,7 @@ const activateLabelBtn = (labels) => {
   LabelBtn.addEventListener("click", () => {
     if (canvas.getObjects().length === 0) {
       // if only have image, then render label
-      renderImageLabels(labels, renderTags = false);
+      renderImageLabels(labels, renderTags = false, userId);
     } else {
       canvas.getObjects().forEach(arr => {
         canvas.remove(arr);
