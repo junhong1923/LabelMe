@@ -33,10 +33,10 @@ app.get("/", (req, res) => {
 });
 
 // Page not found
-app.use((err, res, next) => {
-  // console.log(err);
-  res.status(500).send(err);
-});
+// app.use((err, res, next) => {
+//   // console.log(err);
+//   res.status(500).send(err);
+// });
 
 // Error handling
 app.use((err, res) => {

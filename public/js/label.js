@@ -175,7 +175,9 @@ const setPanEvents = (canvas) => {
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
       console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
-      genLabelTable(labels[0].owner, "labeler", latestObj.labelId, latestObj.tag, "your1", remove = true);
+
+      const labelOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
+      genLabelTable(labelOwner, "labeler", latestObj.labelId, latestObj.tag, "your1", remove = true);
     }
   });
 };
@@ -426,6 +428,21 @@ const getImageLabels = (userId, imageId) => {
   });
 };
 
+const delDbLabel = (imageId, userId, labelId) => {
+  return new Promise((resolve, reject) => {
+    fetch(`/api/1.0/label/load-coordinates?img=${imageId}&user=${userId}&labelId=${labelId}`, { method: "" })
+      .then((res) => {
+        if (res.status === 200) {
+          return res.json();
+        }
+      })
+      .then((res) => {
+        resolve(res);
+      })
+      .catch(err => reject(err));
+  });
+};
+
 const renderImageLabels = (labels, renderTags = true, userId) => {
   // variables for render label list table
   tableBody.innerHTML = "";
@@ -508,6 +525,9 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
             }
           }
 
+          // 這邊再發一隻api到後端資料庫刪除
+          // delDbLabel(imageId, userId, labelId)
+
           Swal.fire("Delete!", "This label has been deleted.", "success");
         }
       });
@@ -553,11 +573,6 @@ const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false
     </tr>
   `;
 };
-
-// get selected canvas object
-// canvas.on("selection:created", (e) => {
-//   console.log(e.target);
-// });
 
 const activateLabelBtn = (labels) => {
   const LabelBtn = document.getElementById("flexSwitchCheckChecked");
@@ -761,6 +776,46 @@ function doRedo () {
 
 undoBtn.addEventListener("click", doUndo);
 redoBtn.addEventListener("click", doRedo);
+
+let hoverTag;
+let hoverLabelId;
+canvas.on("mouse:over", (e) => {
+  // console.log(mousePressed);
+  if (mousePressed === false && e.target) {
+    // console.log(e.target);
+    hoverTag = e.target.tag;
+    hoverLabelId = e.target.labelId;
+    const borderColor = e.target.stroke;
+    const xy = { left: e.target.left, top: e.target.top };
+
+    const text = new fabric.Text(hoverTag, {
+      left: xy.left + e.target.width / 2 - 10,
+      top: xy.top,
+      fontSize: 20
+      // borderColor: borderColor
+      // fontWeight: 800
+      // originX: "top",
+      // originY: "top"
+    });
+    text.id = `${hoverTag}_${hoverLabelId}`;
+    canvas.add(text);
+    canvas.renderAll();
+  }
+});
+
+canvas.on("mouse:out", (e) => {
+  canvas.getObjects().forEach(arr => {
+    if (arr.text) {
+      canvas.remove(arr);
+    }
+  });
+  canvas.renderAll();
+});
+
+// get selected canvas object
+// canvas.on("selection:created", (e) => {
+//   console.log(e.target);
+// });
 
 signout.onclick = () => {
   localStorage.removeItem("token");

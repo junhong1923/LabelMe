@@ -74,6 +74,11 @@ header {
   justify-content: center;
 }
 
+/* .canvas .tab-content { */
+  /* border: 1px solid #b0c4de; */
+  /* box-shadow: 3px 3px 3px 3px #cccccc; */
+/* } */
+
 .canvas .board table caption {
   padding-left: 3.5rem;
 }
@@ -120,7 +125,9 @@ header {
 } 
 
 .canvas .label-pane .add-btn {
-  padding-left: 70px;
+  margin-top: 3px;
+  margin-left: 65px;
+  /* padding-left: 70px; */
 }
 
 .canvas .table thead {
