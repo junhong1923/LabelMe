@@ -85,7 +85,7 @@ const saveCoordinates = async (req, res) => {
   const checkedLabels = compareLabelsPair(originalLabels, newLabels);
 
   if (checkedLabels.length === 0) {
-    res.status(401).send({ msg: "Nothing new to submit" });
+    res.status(200).send({ msg: "Nothing new to submit" });
   } else {
     const result = await Label.insertCoordinates(userId, checkedLabels);
     console.log(result.msg);

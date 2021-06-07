@@ -392,6 +392,36 @@ const commitLabel = (canvas) => {
       } else if (res.error === "Forbidden: TokenExpiredError") {
         alert(res.error);
         window.location.assign("login.html");
+      } else {
+        if (res.msg === "Nothing new to submit") {
+          Swal.fire({
+            toast: true,
+            title: "Submit done, no new label coordiantes.",
+            icon: "info",
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            didOpen: (toast) => {
+              toast.addEventListener("mouseenter", Swal.stopTimer);
+              toast.addEventListener("mouseleave", Swal.resumeTimer);
+            }
+          });
+        } else {
+          Swal.fire({
+            toast: true,
+            title: "Submit done.",
+            icon: "success",
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            didOpen: (toast) => {
+              toast.addEventListener("mouseenter", Swal.stopTimer);
+              toast.addEventListener("mouseleave", Swal.resumeTimer);
+            }
+          });
+        }
+        console.log("response of submit:");
+        console.log(res);
       }
     }).catch((err) => {
       console.log(err);
@@ -780,30 +810,26 @@ redoBtn.addEventListener("click", doRedo);
 let hoverTag;
 let hoverLabelId;
 canvas.on("mouse:over", (e) => {
-  // console.log(mousePressed);
+  // show tag on box when hover that box
   if (mousePressed === false && e.target) {
     // console.log(e.target);
     hoverTag = e.target.tag;
     hoverLabelId = e.target.labelId;
-    const borderColor = e.target.stroke;
     const xy = { left: e.target.left, top: e.target.top };
 
     const text = new fabric.Text(hoverTag, {
       left: xy.left + e.target.width / 2 - 10,
       top: xy.top,
       fontSize: 20
-      // borderColor: borderColor
-      // fontWeight: 800
-      // originX: "top",
-      // originY: "top"
     });
-    text.id = `${hoverTag}_${hoverLabelId}`;
+    // text.id = `${hoverTag}_${hoverLabelId}`;
     canvas.add(text);
     canvas.renderAll();
   }
 });
 
 canvas.on("mouse:out", (e) => {
+  // clean tag text of box when mouse:out
   canvas.getObjects().forEach(arr => {
     if (arr.text) {
       canvas.remove(arr);
