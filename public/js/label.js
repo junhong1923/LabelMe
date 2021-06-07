@@ -692,6 +692,9 @@ tagsDiv.onclick = (e) => {
     e.target.parentNode.className += " selected";
     selectedTag = e.target.textContent;
     tagColor = e.target.previousElementSibling.id;
+
+    // auto change mode to bounding when tag selected
+    currentMode = "bounding";
   }
 
   // display or not
@@ -822,9 +825,13 @@ canvas.on("mouse:over", (e) => {
     const xy = { left: e.target.left, top: e.target.top };
 
     const text = new fabric.Text(hoverTag, {
-      left: xy.left + e.target.width / 2 - 10,
+      left: xy.left + e.target.width / 2 - 15,
       top: xy.top,
-      fontSize: 20
+      fontFamily: "helvetica",
+      fontSize: 20,
+      fill: "white",
+      backgroundColor: "back"
+
     });
     // text.id = `${hoverTag}_${hoverLabelId}`;
     canvas.add(text);
