@@ -16,6 +16,7 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
               conn.rollback(() => { conn.release(); });
               reject(err);
             } else {
+              const imageId = result.insertId;
               // 2. insert imgSize(capacity累加) and update qty in user
               conn.query("UPDATE user SET img_qty = img_qty + 1, capacity = capacity + ? WHERE id = ?", [imgSize, userId], (err, result) => {
                 if (err) {
@@ -29,7 +30,7 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
                     } else {
                       // Success
                       conn.release();
-                      resolve(result);
+                      resolve({ imageId, result });
                     }
                   });
                 }
@@ -39,6 +40,42 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
         }
       });
     });
+  });
+};
+
+const insertApiCoordinates = (imageId, localizedAnnotations) => {
+  return new Promise((resolve, reject) => {
+    console.log("model");
+    console.log(typeof imageId, imageId);
+
+    const finalResult = [];
+    localizedAnnotations.forEach(obj => {
+      // console.log(obj.mid, obj.languageCode, obj.name, obj.score);
+      const vertices = obj.boundingPoly.normalizedVertices;
+      // console.log(vertices[0].x, vertices[0].y);
+      // console.log(vertices[1].x, vertices[1].y);
+      // console.log(vertices[2].x, vertices[2].y);
+      // console.log(vertices[3].x, vertices[3].y);
+
+      const bindings = [obj.mid, obj.languageCode, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
+      console.log(bindings);
+      const sql = "INSERT INTO api_inference SET mid = ?, languageCode = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
+      pool.query(sql, bindings, (err, result) => {
+        if (err) reject(err);
+        console.log(result);
+        finalResult.push(result);
+      });
+    });
+
+    // const bindings = localizedAnnotations.map(obj => { return [obj.mid, obj.languageCode, obj.name, obj.score, `point(${obj.boundingPoly.normalizedVertices[0].x}, ${obj.boundingPoly.normalizedVertices[0].y})`, `point(${obj.boundingPoly.normalizedVertices[1].x}, ${obj.boundingPoly.normalizedVertices[1].y})`, `point(${obj.boundingPoly.normalizedVertices[2].x}, ${obj.boundingPoly.normalizedVertices[2].y})`, `point(${obj.boundingPoly.normalizedVertices[3].x}, ${obj.boundingPoly.normalizedVertices[3].y})`, imageId]; });
+    // const bindings = localizedAnnotations.map(obj => { return [obj.mid, obj.languageCode, obj.name, obj.score, obj.boundingPoly.normalizedVertices[0].x, obj.boundingPoly.normalizedVertices[0].y, obj.boundingPoly.normalizedVertices[1].x, obj.boundingPoly.normalizedVertices[1].y, obj.boundingPoly.normalizedVertices[2].x, obj.boundingPoly.normalizedVertices[2].y, obj.boundingPoly.normalizedVertices[3].x, obj.boundingPoly.normalizedVertices[3].y, imageId]; });
+    // const sql = "INSERT INTO api_inference (mid, languageCode, name, score, normalizedVertices_0, normalizedVertices_1, normalizedVertices_2, normalizedVertices_3, image_id) VALUES ?";
+    // pool.query(sql, bindings, (err, result) => {
+    //   if (err) reject(err);
+    //   console.log(result);
+    // });
+
+    resolve(finalResult);
   });
 };
 
@@ -114,6 +151,7 @@ const queryImageOwner = (imageId) => {
 
 module.exports = {
   insertOriginalImage,
+  insertApiCoordinates,
   insertCoordinates,
   queryLabels,
   queryImageOwner

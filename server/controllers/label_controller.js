@@ -1,3 +1,4 @@
+const path = require("path");
 const Label = require("../models/label_model");
 const utils = require("../../util/util");
 
@@ -22,7 +23,9 @@ async function localizeObjects (req) {
   // console.log(s3Uri);
   const [result] = await client.objectLocalization(request);
   // console.log(result);
-  utils.writePredictions(result, `../../label_json/api_inference/prediction_${req.file.originalname}.json`);
+  const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
+  console.log(filePath);
+  utils.writePredictions(result, filePath);
 
   const objects = result.localizedObjectAnnotations;
   // console.log(objects);
@@ -46,10 +49,12 @@ const saveOriImage = async (req, res) => {
   const localizedAnnotations = await localizeObjects(req);
 
   const imgResult = await Label.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-  const apiResult = Label.insertApiCoordinates(localizedAnnotations);
+  console.log(imgResult);
+  const imageId = imgResult.imageId;
+  const apiResult = Label.insertApiCoordinates(imageId, localizedAnnotations); // let it store to db async
 
-  if (imgResult.changedRows === 1) {
-    res.status(200).json({ userId, imgSize, imgPath });
+  if (imgResult.result.changedRows === 1) {
+    res.status(200).json({ userId, imgSize, imgPath, inference: localizedAnnotations });
   }
 };
 
