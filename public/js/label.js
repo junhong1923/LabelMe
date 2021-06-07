@@ -819,23 +819,28 @@ let hoverLabelId;
 canvas.on("mouse:over", (e) => {
   // show tag on box when hover that box
   if (mousePressed === false && e.target) {
-    // console.log(e.target);
     hoverTag = e.target.tag;
     hoverLabelId = e.target.labelId;
     const xy = { left: e.target.left, top: e.target.top };
-
+    console.log(hoverTag, hoverLabelId);
     const text = new fabric.Text(hoverTag, {
       left: xy.left + e.target.width / 2 - 15,
       top: xy.top,
       fontFamily: "helvetica",
       fontSize: 20,
       fill: "white",
-      backgroundColor: "back"
-
+      backgroundColor: "rgba(0,0,0,0.8)"
     });
-    // text.id = `${hoverTag}_${hoverLabelId}`;
     canvas.add(text);
     canvas.renderAll();
+
+    // highlight the corresponded table list when its label hoverd
+    for (let i = 0; i <= tableBody.childElementCount - 1; i++) {
+      if (tableBody.children[i].id === hoverLabelId) {
+        console.log(tableBody.children[i]);
+        tableBody.children[i].style.backgroundColor = "rgba(0, 0, 0, 0.075)";
+      }
+    }
   }
 });
 
@@ -847,6 +852,13 @@ canvas.on("mouse:out", (e) => {
     }
   });
   canvas.renderAll();
+
+  // clean the highlight background color of table list when mouse:out
+  for (let i = 0; i <= tableBody.childElementCount - 1; i++) {
+    if (tableBody.children[i].id === hoverLabelId) {
+      tableBody.children[i].style.backgroundColor = "";
+    }
+  }
 });
 
 // get selected canvas object
