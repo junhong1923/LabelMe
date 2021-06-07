@@ -22,7 +22,7 @@ async function localizeObjects (req) {
   // console.log(s3Uri);
   const [result] = await client.objectLocalization(request);
   // console.log(result);
-  utils.writePredictions(result, `prediction_${req.file.originalname}.json`);
+  utils.writePredictions(result, `../../label_json/api_inference/prediction_${req.file.originalname}.json`);
 
   const objects = result.localizedObjectAnnotations;
   // console.log(objects);
@@ -101,11 +101,13 @@ const loadLabels = async (req, res) => {
   // const userId = req.query.user;
   const imgId = req.query.img;
   const result = await Label.queryLabels(imgId);
+  console.log(result);
   if (result.length > 0) {
     res.status(200).send(result);
   } else {
-    // console.log(result);
-    res.status(200).send({ msg: "Label not found" });
+    // result = []
+    const imgOwner = await Label.queryImageOwner(imgId);
+    res.status(200).send([{ owner: imgOwner.owner, msg: "Label not found" }]);
   }
 };
 

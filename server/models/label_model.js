@@ -82,10 +82,12 @@ const insertCoordinates = (userId, coordinates) => {
 const queryLabels = (imageId) => {
   return new Promise((resolve, reject) => {
     // const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
-    const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, a.tag, coordinates_xy, coordinates_wh, a.user_id as labeler, b.user_id as owner FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
+    const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.tag, coordinates_xy, coordinates_wh, scale, a.user_id as labeler, b.user_id as owner FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
     pool.query(sql, imageId, (err, result) => {
       if (err) reject(err);
       // console.log(result);
+
+      // 想找出不重複的userId，然後再去撈userName
       if (result.length > 0) {
         const userIdSet = new Set();
         userIdSet.add(result[0].owner);
@@ -101,8 +103,18 @@ const queryLabels = (imageId) => {
   });
 };
 
+const queryImageOwner = (imageId) => {
+  return new Promise((resolve, reject) => {
+    pool.query("SELECT user_id as owner FROM original_image WHERE image_id = ?", [imageId], (err, result) => {
+      if (err) reject(err);
+      resolve(result[0]);
+    });
+  });
+};
+
 module.exports = {
   insertOriginalImage,
   insertCoordinates,
-  queryLabels
+  queryLabels,
+  queryImageOwner
 };
