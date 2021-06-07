@@ -13,27 +13,27 @@ const jwt = require("jsonwebtoken");
 const User = require("../server/models/user_model");
 
 const upload = multer({
-  limit: { fileSize: 1000000 }
-  // storage: multer.diskStorage({
-  //   destination: (req, file, cb) => {
-  //     const userId = req.user.id;
-  //     const imagePath = path.join(__dirname, `../public/assets/${userId}`);
-  //     console.log(imagePath);
-  //     if (!fs.existsSync(imagePath)) {
-  //       fs.mkdirSync(imagePath);
-  //     }
-  //     cb(null, imagePath);
-  //   },
-  //   filename: (req, file, cb) => {
-  //     const date = new Date();
-  //     const year = date.getFullYear();
-  //     const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
-  //     const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
-  //     const timeStr = `${year}-${month}-${day}`;
-  //     const savePath = `${timeStr}_${file.originalname}`;
-  //     cb(null, savePath);
-  //   }
-  // })
+  limit: { fileSize: 1000000 },
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const userId = req.user.id;
+      const imagePath = path.join(__dirname, `../public/assets/${userId}`);
+      console.log(imagePath);
+      if (!fs.existsSync(imagePath)) {
+        fs.mkdirSync(imagePath);
+      }
+      cb(null, imagePath);
+    },
+    filename: (req, file, cb) => {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
+      const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+      const timeStr = `${year}-${month}-${day}`;
+      const savePath = `${timeStr}_${file.originalname}`;
+      cb(null, savePath);
+    }
+  })
 });
 
 const uploadS3 = multer({
@@ -102,47 +102,13 @@ const authentication = (roleId) => {
   };
 };
 
-async function localizeObjects () {
-  // Imports the Google Cloud client library
-  const vision = require("@google-cloud/vision");
+const writePredictions = (objects, filename) => {
+  const data = JSON.stringify(objects);
 
-  // Creates a client
-  // Instantiates a client. If you don't specify credentials when constructing
-  // the client, the client library will look for credentials in the
-  // environment.
-  // const client = new vision.ImageAnnotatorClient();
-  const client = new vision.ImageAnnotatorClient({
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-  });
-
-  const request = {
-    image: { content: "fileName" }
-  };
-
-  const [result] = await client.objectLocalization(request);
-  const objects = result.localizedObjectAnnotations;
-  writePredictions(objects);
-  console.log(objects);
-  objects.forEach(object => {
-    console.log(`Name: ${object.name}`);
-    console.log(`Confidence: ${object.score}`);
-    const vertices = object.boundingPoly.normalizedVertices;
-    vertices.forEach(v => console.log(`x: ${v.x}, y:${v.y}`));
-  });
-
-  // Performs label detection on the image file
-  // const [result] = await client.labelDetection("/Users/linjunhong/Documents/AppworkSchool/git/ProjectImages/lowpost.jpeg");
-  // const labels = result.labelAnnotations;
-  // console.log("Labels:");
-  // labels.forEach(label => console.log(label.description));
-}
-// localizeObjects();
-
-function writePredictions (objects) {
-  fs.writeFile("test.json", objects, (err) => {
+  fs.writeFile(filename, data, (err) => {
     if (err) console.log(err);
   });
-}
+};
 
 const getS3BufferData = (multerData) => {
   return new Promise((resolve, reject) => {
@@ -156,6 +122,7 @@ const getS3BufferData = (multerData) => {
         console.log(err, err.stack);
         reject(err);
       }
+
       resolve(data.Body);
     });
   });
@@ -164,7 +131,7 @@ const getS3BufferData = (multerData) => {
 module.exports = {
   upload,
   uploadS3,
-  localizeObjects,
+  writePredictions,
   getS3BufferData,
   wrapAsync,
   authentication
