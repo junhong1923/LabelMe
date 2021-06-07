@@ -293,7 +293,8 @@ window.onload = (e) => {
     })
     .then(async (res) => {
       if (res.error) {
-        alert(res.error);
+        // alert(res.error);
+        Swal.fire(res.error);
         window.location.assign("/html/welcome.html");
       } else {
         // we have userId here: res.id
@@ -378,7 +379,8 @@ const commitLabel = (canvas) => {
       if (res.status === 200) {
         return res.json();
       } else if (res.status === 401) {
-        alert("Please Login.");
+        // alert("Please Login.");
+        Swal.fire("Please Login.");
         return window.location.assign("/login.html");
       } else {
         return res.json();
@@ -387,10 +389,12 @@ const commitLabel = (canvas) => {
     .then((res) => {
       console.log(res);
       if (res.error === "Cannot find your email account.") {
-        alert(`${res.error}Please Signup`);
+        // alert(`${res.error}Please Signup`);
+        Swal.fire(`${res.error}Please Signup`);
         window.location.assign("login.html");
       } else if (res.error === "Forbidden: TokenExpiredError") {
-        alert(res.error);
+        // alert(res.error);
+        Swal.fire(res.error);
         window.location.assign("login.html");
       } else {
         if (res.msg === "Nothing new to submit") {
@@ -420,8 +424,6 @@ const commitLabel = (canvas) => {
             }
           });
         }
-        console.log("response of submit:");
-        console.log(res);
       }
     }).catch((err) => {
       console.log(err);
@@ -782,7 +784,8 @@ canvas.on("object:modified", e => {
 // 把最後一筆被修改的內容透過 pop 拿出來讀取，再將 state 更改為上一步的狀態。
 function doUndo () {
   if (!undo.length) {
-    alert("目前沒有動作可復原");
+    // alert("目前沒有動作可復原");
+    Swal.fire("No movement to undo.");
     return;
   }
   const lastJSON = undo.pop();
@@ -794,7 +797,8 @@ function doUndo () {
 
 function doRedo () {
   if (!redo.length) {
-    alert("目前沒有動作可復原");
+    // alert("目前沒有動作可復原");
+    Swal.fire("No movement to redo.");
     return;
   }
   const lastJSON = redo.pop();
