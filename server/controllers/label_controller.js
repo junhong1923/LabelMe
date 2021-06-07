@@ -1,24 +1,7 @@
 const Label = require("../models/label_model");
 const utils = require("../../util/util");
-const fs = require("fs");
-const sharp = require("sharp");
 
-function writePredictions (objects) {
-  fs.writeFile("../../test.json", objects, (err) => {
-    if (err) console.log(err);
-  });
-}
-
-const localizeObjects = async (req) => {
-  console.log("localizeObjects:");
-  // console.log(req.file.location);
-  const bufferData = await utils.getS3BufferData(req.file);
-  console.log(typeof sharp(bufferData));
-  // console.log(sharp(bufferData));
-
-  const encoded = Buffer.from(bufferData).toString("base64");
-  console.log(typeof encoded);
-
+async function localizeObjects (req) {
   // Imports the Google Cloud client library
   const vision = require("@google-cloud/vision");
 
@@ -26,56 +9,29 @@ const localizeObjects = async (req) => {
   // Instantiates a client. If you don't specify credentials when constructing
   // the client, the client library will look for credentials in the
   // environment.
-  // const client = new vision.ImageAnnotatorClient();
   const client = new vision.ImageAnnotatorClient({
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
   });
 
-  // const request = {
-  //   image: { content: sharp(bufferData) }
-  // };
+  const bufferData = await utils.getS3BufferData(req.file);
   const request = {
-    image: {
-      content: sharp(bufferData)
-    },
-    features: [
-      {
-        type: "OBJECT_LOCALIZATION"
-        // maxResults: 10
-      }
-    ]
+    image: { content: bufferData }
   };
 
-  // const a = {
-  //   requests: [
-  //     {
-  //       image: {
-  //         source: {
-  //           imageUri:
-  //             req.file.location
-  //         }
-  //       },
-  //       features: [
-  //         {
-  //           type: "LOGO_DETECTION"
-  //           // maxResults: 1
-  //         }
-  //       ]
-  //     }
-  //   ]
-  // };
-  // const [result] = await client.objectLocalization(request);
-  const [result] = await client.annotateImage(request);
-  const objects = result.localizedObjectAnnotations;
-  writePredictions(objects);
+  // const s3Uri = "s3://" + req.file.bucket + "/" + req.file.key;
+  // console.log(s3Uri);
+  const [result] = await client.objectLocalization(request);
+  // console.log(result);
+  utils.writePredictions(result, `prediction_${req.file.originalname}.json`);
 
-  console.log(objects);
-  objects.forEach(object => {
-    console.log(`Name: ${object.name}`);
-    console.log(`Confidence: ${object.score}`);
-    const vertices = object.boundingPoly.normalizedVertices;
-    vertices.forEach(v => console.log(`x: ${v.x}, y:${v.y}`));
-  });
+  const objects = result.localizedObjectAnnotations;
+  // console.log(objects);
+  // objects.forEach(object => {
+  //   console.log(`Name: ${object.name}`);
+  //   console.log(`Confidence: ${object.score}`);
+  //   const vertices = object.boundingPoly.normalizedVertices;
+  //   vertices.forEach(v => console.log(`x: ${v.x}, y:${v.y}`));
+  // });
   return objects;
 };
 
@@ -86,11 +42,13 @@ const saveOriImage = async (req, res) => {
   const imgFileName = req.file.originalname;
 
   console.log("label controller");
-  console.log(req.file);
-  // const predictLabels = await localizeObjects(req);
+  // console.log(req.file);
+  const localizedAnnotations = await localizeObjects(req);
 
-  const result = await Label.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-  if (result.changedRows === 1) {
+  const imgResult = await Label.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
+  const apiResult = Label.insertApiCoordinates(localizedAnnotations);
+
+  if (imgResult.changedRows === 1) {
     res.status(200).json({ userId, imgSize, imgPath });
   }
 };
@@ -126,10 +84,14 @@ const saveCoordinates = async (req, res) => {
   const newLabels = req.body.after;
   const checkedLabels = compareLabelsPair(originalLabels, newLabels);
 
-  const result = await Label.insertCoordinates(userId, checkedLabels);
-  console.log(result.msg);
-  if (result.msg) {
-    res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+  if (checkedLabels.length === 0) {
+    res.status(401).send({ msg: "Nothing new to submit" });
+  } else {
+    const result = await Label.insertCoordinates(userId, checkedLabels);
+    console.log(result.msg);
+    if (result.msg) {
+      res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+    }
   }
 };
 
