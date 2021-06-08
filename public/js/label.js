@@ -445,7 +445,7 @@ const commitLabel = (canvas) => {
         if (res.msg === "Nothing new to submit") {
           Swal.fire({
             toast: true,
-            title: "Submit done", // , no new label coordiantes. ??
+            title: "Submit done, no new label coordiantes.",
             icon: "info",
             position: "top-end",
             showConfirmButton: false,

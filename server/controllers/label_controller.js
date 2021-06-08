@@ -23,9 +23,10 @@ async function localizeObjects (req) {
   // console.log(s3Uri);
   const [result] = await client.objectLocalization(request);
   // console.log(result);
-  const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
-  console.log(filePath);
-  utils.writePredictions(result, filePath);
+  // 先不要寫檔，怕速度太慢
+  // const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
+  // console.log(filePath);
+  // utils.writePredictions(result, filePath);
 
   const objects = result.localizedObjectAnnotations;
   // console.log(objects);
@@ -87,7 +88,13 @@ const saveCoordinates = async (req, res) => {
 
   const originalLabels = req.body.before;
   const newLabels = req.body.after;
-  const checkedLabels = compareLabelsPair(originalLabels, newLabels);
+  let checkedLabels;
+  console.log(originalLabels === newLabels);
+  if (originalLabels.tag) {
+    checkedLabels = compareLabelsPair(originalLabels, newLabels);
+  } else {
+    checkedLabels = newLabels;
+  }
 
   if (checkedLabels.length === 0) {
     res.status(200).send({ msg: "Nothing new to submit" });
