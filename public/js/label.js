@@ -7,14 +7,17 @@ const redo = [];
 const undoBtn = document.querySelector("#undo");
 const redoBtn = document.querySelector("#redo");
 let userId;
+let userName;
 let imageId;
 let imageSrc;
 let file;
+const uploadImg = {};
 let drawType;
 let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
+let inference; // ???
 const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
 const tagsDiv = document.querySelector("#tags");
 let selectedTag;
@@ -176,8 +179,12 @@ const setPanEvents = (canvas) => {
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
       console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
 
-      const labelOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
-      genLabelTable(labelOwner, "labeler", latestObj.labelId, latestObj.tag, "your1", remove = true);
+      // bug: imgOwner目前從labels[0]取得，但如果圖還沒有任何標註，則擁有者是誰？要去哪抓？ sol:一開始回傳labels也要帶owner
+      // 如果是目前使用者自己上傳的話，就是該使用者
+      const imgOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
+      console.log("imgowner:", labels[0].owner, "Cuurent userId:", userId);
+      console.log("imgOwner:", imgOwner);
+      genLabelTable(imgOwner, userId, latestObj.labelId, latestObj.tag, "your", remove = true);
     }
   });
 };
@@ -254,6 +261,8 @@ inputFile.addEventListener("change", (e) => {
 
 reader.addEventListener("load", () => { // Loading Image
   fabric.Image.fromURL(reader.result, img => {
+    uploadImg.width = img.width;
+    uploadImg.height = img.height;
     img.set({
       left: (canvas.width - img.width) / 2,
       top: (canvas.height - img.height) / 2,
@@ -299,6 +308,7 @@ window.onload = (e) => {
       } else {
         // we have userId here: res.id
         userId = res.id;
+        userName = res.name;
         console.log(res);
 
         // if image_id, image_path in url then render that image to canvas
@@ -308,7 +318,7 @@ window.onload = (e) => {
         if (imageSrc && imageId) {
           renderImageSrc(imageSrc);
           labels = await getImageLabels(res.id, imageId);
-          if (!labels.msg) {
+          if (labels[0].owner) {
             activateLabelBtn(labels);
             renderImageLabels(labels, renderTags = true, userId);
             state = canvas.toJSON();
@@ -318,14 +328,35 @@ window.onload = (e) => {
         // Upload Original Image
         const uploadBtn = document.querySelector(".upload-btn");
         uploadBtn.onclick = (e) => {
+          // Swal.fire({
+          //   toast: true,
+          //   icon: "success",
+          //   title: "Uploading",
+          //   position: "top-end",
+          //   showConfirmButton: false,
+          //   timer: 3000,
+          //   timerProgressBar: true
+          // });
+          let timerInterval;
           Swal.fire({
-            toast: true,
-            icon: "success",
-            title: "Uploading",
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+            title: "Uploading and Processing ...",
+            timer: 16000,
+            timerProgressBar: true,
+            didOpen: () => {
+              Swal.showLoading();
+              timerInterval = setInterval(() => {
+                const content = Swal.getHtmlContainer();
+                if (content) {
+                  const b = content.querySelector("b");
+                  if (b) {
+                    b.textContent = Swal.getTimerLeft();
+                  }
+                }
+              }, 100);
+            },
+            willClose: () => {
+              clearInterval(timerInterval);
+            }
           });
         };
         const imgForm = document.querySelector(".form-img");
@@ -345,7 +376,20 @@ const submitted = (event) => {
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.onreadystatechange = () => {
     if (xhr.readyState === 4) {
-      console.log(xhr.response);
+      console.log(JSON.parse(xhr.response));
+      if (JSON.parse(xhr.response).inference) {
+        inference = JSON.parse(xhr.response).inference;
+        Swal.fire({
+          toast: true,
+          icon: "success",
+          title: "Upload done!",
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        renderApiLabels(inference);
+      }
     }
   };
   xhr.send(formData);
@@ -475,11 +519,33 @@ const delDbLabel = (imageId, userId, labelId) => {
   });
 };
 
+const renderApiLabels = (inference) => {
+  // console.log(inference);
+  const renderInput = [];
+  // console.log(uploadImg.width, uploadImg.height);
+  inference.forEach((obj, idx) => {
+    const id = `inference_${idx + 1}`;
+    const labeler = "ai";
+    const imgOwner = userId;
+    const inferenceTag = obj.name;
+    const inferenceScore = obj.score;
+    const inferenceCoordiantes = {
+      left: obj.boundingPoly.normalizedVertices[0].x * uploadImg.width + (canvas.width - uploadImg.width) / 2,
+      top: obj.boundingPoly.normalizedVertices[0].y * uploadImg.height + (canvas.height - uploadImg.height) / 2,
+      width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
+      height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
+    };
+    renderInput.push({ id, image_id: imageId, owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
+  });
+  // 一次整理好, render
+  renderImageLabels(renderInput, renderTags = true, userId);
+};
+
 const renderImageLabels = (labels, renderTags = true, userId) => {
   // variables for render label list table
   tableBody.innerHTML = "";
 
-  console.log(labels);
+  // console.log(labels);
   const imgOwner = labels[0].owner;
   // 6/2 get tag and color map
   const tagSet = new Set();
@@ -489,7 +555,7 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
   Array.from(tagSet).forEach(function (value, idx) {
     tagColorMap[value] = colorArr[idx];
   });
-
+  // console.log(tagSet, tagColorMap); // ai抓的tag，如果都是臉會生成兩個同樣顏色的tag，要再去判斷
   // using tag and color map to render labels
   labels.forEach((arr, idx) => {
     const XY = arr.coordinates_xy;
@@ -518,78 +584,19 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
     const labeler = arr.labeler;
     const tag = arr.tag;
 
-    genLabelTable(imgOwner, labeler, labelId, tag, `shared${idx + 1}`);
-  });
-
-  // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
-  tableBody.onclick = (e) => {
-    console.log(e.target);
-    let labelId;
-    if (!e.target.id.includes("fresh")) {
-      labelId = parseInt(e.target.id);
+    if (labeler === "ai") {
+      // console.log("genLabelTable for api");
+      genLabelTable(imgOwner, labeler, labelId, tag, "AI", remove = true);
     } else {
-      labelId = e.target.id;
+      genLabelTable(imgOwner, labeler, labelId, tag, `shared.${idx + 1}`);
     }
-
-    if (e.target.alt === "remove") {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "Delete this label.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          console.log("tableBody onclick, delete label...");
-
-          // remove obj on canvas
-          canvas.getObjects().forEach(obj => {
-            if (obj.labelId === labelId) {
-              canvas.remove(obj);
-            }
-          });
-          // remove label on table list
-          for (let i = 0; i < tableBody.childElementCount; i++) {
-            if (tableBody.children[i].id === labelId) {
-              tableBody.removeChild(tableBody.children[i]);
-            }
-          }
-
-          // 這邊再發一隻api到後端資料庫刪除
-          // delDbLabel(imageId, userId, labelId)
-
-          Swal.fire("Delete!", "This label has been deleted.", "success");
-        }
-      });
-    } else if (e.target.alt === "display") {
-      if (e.target.className === "active") {
-        canvas.getObjects().forEach(obj => {
-          if (obj.labelId === labelId) {
-            obj.opacity = 0;
-            canvas.renderAll();
-          }
-        });
-        e.target.className = "";
-        e.target.src = "../images/icons/Eye-Show-Disable.svg";
-      } else {
-        canvas.getObjects().forEach(obj => {
-          if (obj.labelId === labelId) {
-            obj.opacity = 1;
-            canvas.renderAll();
-          }
-        });
-        e.target.className = "active";
-        e.target.src = "../images/icons/Eye-Show.svg";
-      }
-    }
-  };
+  });
 };
 
 const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false) => {
   let tempHtml;
-  if (userId === imgOwner || remove) {
+  if (userId === imgOwner || remove === true) {
+    // console.log("api can be remove");
     tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
   } else {
     tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
@@ -698,6 +705,74 @@ tagsDiv.onclick = (e) => {
   }
 
   // display or not
+};
+
+// remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
+tableBody.onclick = (e) => {
+  // console.log(e.target);
+  let labelId;
+  if (e.target.id.includes("inference")) {
+    labelId = e.target.id;
+  } else if (!e.target.id.includes("fresh")) {
+    labelId = parseInt(e.target.id);
+  } else {
+    labelId = e.target.id;
+  }
+  // console.log(labelId);
+  if (e.target.alt === "remove") {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Delete this label.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // console.log("tableBody onclick, delete label...");
+
+        // remove obj on canvas
+        canvas.getObjects().forEach(obj => {
+          // AI預測的也要能刪除
+          if (obj.labelId === labelId) {
+            canvas.remove(obj);
+          }
+        });
+        // remove label on table list
+        for (let i = 0; i < tableBody.childElementCount; i++) {
+          if (tableBody.children[i].id === labelId) {
+            tableBody.removeChild(tableBody.children[i]);
+          }
+        }
+
+        // 這邊再發一隻api到後端資料庫刪除
+        // delDbLabel(imageId, userId, labelId)
+
+        Swal.fire("Delete!", "This label has been deleted.", "success");
+      }
+    });
+  } else if (e.target.alt === "display") {
+    if (e.target.className === "active") {
+      canvas.getObjects().forEach(obj => {
+        if (obj.labelId === labelId) {
+          obj.opacity = 0;
+          canvas.renderAll();
+        }
+      });
+      e.target.className = "";
+      e.target.src = "../images/icons/Eye-Show-Disable.svg";
+    } else {
+      canvas.getObjects().forEach(obj => {
+        if (obj.labelId === labelId) {
+          obj.opacity = 1;
+          canvas.renderAll();
+        }
+      });
+      e.target.className = "active";
+      e.target.src = "../images/icons/Eye-Show.svg";
+    }
+  }
 };
 
 const saveFile = () => {
@@ -822,7 +897,7 @@ canvas.on("mouse:over", (e) => {
     hoverTag = e.target.tag;
     hoverLabelId = e.target.labelId;
     const xy = { left: e.target.left, top: e.target.top };
-    console.log(hoverTag, hoverLabelId);
+    // console.log(hoverTag, hoverLabelId);
     const text = new fabric.Text(hoverTag, {
       left: xy.left + e.target.width / 2 - 15,
       top: xy.top,
@@ -837,7 +912,6 @@ canvas.on("mouse:over", (e) => {
     // highlight the corresponded table list when its label hoverd
     for (let i = 0; i <= tableBody.childElementCount - 1; i++) {
       if (tableBody.children[i].id === hoverLabelId) {
-        console.log(tableBody.children[i]);
         tableBody.children[i].style.backgroundColor = "rgba(0, 0, 0, 0.075)";
       }
     }
