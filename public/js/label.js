@@ -779,15 +779,23 @@ const saveFile = () => {
   const link = document.getElementById("download");
   // 5/26 如果是從主頁點近來開始的，會沒有file.name。可能要從url去切出檔名
   let downloadFileName;
+  console.log(file);
   if (file) {
-    downloadFileName = `labeled_${file.name}`;
+    // downloadFileName = `labeled_${file.name}`;
+    downloadFileName = `labeled_${file.name.split(".")[0]}.json`;
   } else {
     // get name of img url
-    downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1]}`;
+    // downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1]}`;
+    downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1].split(".")[0]}.json`;
   }
   console.log(downloadFileName);
+
+  // 下載json檔
+  const blob = new Blob([JSON.stringify({ data: canvas.getObjects() })]);
+
   link.download = downloadFileName;
-  link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
+  link.href = URL.createObjectURL(blob);
+  // link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
   link.click();
   const currState = canvas.toJSON();
   console.log("currState of saving:");
