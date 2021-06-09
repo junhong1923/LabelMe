@@ -62,10 +62,11 @@ const saveOriImage = async (req, res) => {
 const compareLabelsPair = (beforeLabels, afterLabels) => {
   const checkedLabelsArr = [];
   afterLabels.forEach(afterObj => {
-    if (afterObj.labelId) {
-      // 有 label_id 則要檢查 originalLabels, obj 是否重複
+    if (afterObj.labelId.toString().includes("fresh")) {
+      checkedLabelsArr.push(afterObj);
+    } else {
       beforeLabels.forEach(beforeObj => {
-        if (afterObj.labelId === beforeObj.id) {
+        if (afterObj.labelId === beforeObj.id) { // 如果before本來的圖片沒標注，labels = [{owner, msg}]，可能有err
           if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
             console.log("remove duplicated coordinate");
           } else {
@@ -73,9 +74,21 @@ const compareLabelsPair = (beforeLabels, afterLabels) => {
           }
         }
       });
-    } else {
-      checkedLabelsArr.push(afterObj);
     }
+    // if (afterObj.labelId) {
+    //   // 有 label_id 則要檢查 originalLabels, obj 是否重複
+    //   beforeLabels.forEach(beforeObj => {
+    //     if (afterObj.labelId === beforeObj.id) { // 如果before本來的圖片沒標注，labels = [{owner, msg}]，可能有err
+    //       if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
+    //         console.log("remove duplicated coordinate");
+    //       } else {
+    //         checkedLabelsArr.push(afterObj);
+    //       }
+    //     }
+    //   });
+    // } else {
+    //   checkedLabelsArr.push(afterObj);
+    // }
   });
   // console.log("----");
   // console.log(checkedLabelsArr);
@@ -90,20 +103,36 @@ const saveCoordinates = async (req, res) => {
   const newLabels = req.body.after;
   let checkedLabels;
   console.log(originalLabels === newLabels);
-  if (originalLabels.tag) {
-    checkedLabels = compareLabelsPair(originalLabels, newLabels);
-  } else {
-    checkedLabels = newLabels;
-  }
 
-  if (checkedLabels.length === 0) {
-    res.status(200).send({ msg: "Nothing new to submit" });
-  } else {
-    const result = await Label.insertCoordinates(userId, checkedLabels);
-    console.log(result.msg);
-    if (result.msg) {
-      res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+  try {
+    if (originalLabels === newLabels) {
+      console.log("condition 0");
+      res.status(200).send({ msg: "Nothing new to submit" });
+      return;
+    } else if (originalLabels && originalLabels[0].id) { // condition: old img w labels
+      console.log("condition 1");
+      checkedLabels = compareLabelsPair(originalLabels, newLabels);
+    } else if (originalLabels && !originalLabels[0].id) { // condition: old img w/o labels
+      console.log("condition 2");
+      checkedLabels = newLabels;
+    } else if (originalLabels === undefined) { // condition: new upload img
+      console.log("condition 3");
+      checkedLabels = newLabels;
     }
+
+    if (checkedLabels.length === 0) {
+      console.log("condition 4");
+      res.status(200).send({ msg: "Nothing new to submit" });
+    } else {
+      const result = await Label.insertCoordinates(userId, checkedLabels);
+      console.log(result.msg);
+      if (result.msg) {
+        res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error...");
   }
 };
 
@@ -113,7 +142,7 @@ const loadLabels = async (req, res) => {
   // const userId = req.query.user;
   const imgId = req.query.img;
   const result = await Label.queryLabels(imgId);
-  console.log(result);
+  // console.log(result);
   if (result.length > 0) {
     res.status(200).send(result);
   } else {

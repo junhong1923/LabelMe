@@ -45,36 +45,21 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
 
 const insertApiCoordinates = (imageId, localizedAnnotations) => {
   return new Promise((resolve, reject) => {
-    console.log("model");
-    console.log(typeof imageId, imageId);
+    // console.log("model");
 
     const finalResult = [];
     localizedAnnotations.forEach(obj => {
-      // console.log(obj.mid, obj.languageCode, obj.name, obj.score);
       const vertices = obj.boundingPoly.normalizedVertices;
-      // console.log(vertices[0].x, vertices[0].y);
-      // console.log(vertices[1].x, vertices[1].y);
-      // console.log(vertices[2].x, vertices[2].y);
-      // console.log(vertices[3].x, vertices[3].y);
 
       const bindings = [obj.mid, obj.languageCode, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
-      console.log(bindings);
+      // console.log(bindings);
       const sql = "INSERT INTO api_inference SET mid = ?, languageCode = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
       pool.query(sql, bindings, (err, result) => {
         if (err) reject(err);
-        console.log(result);
+        // console.log(result);
         finalResult.push(result);
       });
     });
-
-    // const bindings = localizedAnnotations.map(obj => { return [obj.mid, obj.languageCode, obj.name, obj.score, `point(${obj.boundingPoly.normalizedVertices[0].x}, ${obj.boundingPoly.normalizedVertices[0].y})`, `point(${obj.boundingPoly.normalizedVertices[1].x}, ${obj.boundingPoly.normalizedVertices[1].y})`, `point(${obj.boundingPoly.normalizedVertices[2].x}, ${obj.boundingPoly.normalizedVertices[2].y})`, `point(${obj.boundingPoly.normalizedVertices[3].x}, ${obj.boundingPoly.normalizedVertices[3].y})`, imageId]; });
-    // const bindings = localizedAnnotations.map(obj => { return [obj.mid, obj.languageCode, obj.name, obj.score, obj.boundingPoly.normalizedVertices[0].x, obj.boundingPoly.normalizedVertices[0].y, obj.boundingPoly.normalizedVertices[1].x, obj.boundingPoly.normalizedVertices[1].y, obj.boundingPoly.normalizedVertices[2].x, obj.boundingPoly.normalizedVertices[2].y, obj.boundingPoly.normalizedVertices[3].x, obj.boundingPoly.normalizedVertices[3].y, imageId]; });
-    // const sql = "INSERT INTO api_inference (mid, languageCode, name, score, normalizedVertices_0, normalizedVertices_1, normalizedVertices_2, normalizedVertices_3, image_id) VALUES ?";
-    // pool.query(sql, bindings, (err, result) => {
-    //   if (err) reject(err);
-    //   console.log(result);
-    // });
-
     resolve(finalResult);
   });
 };
@@ -82,11 +67,11 @@ const insertApiCoordinates = (imageId, localizedAnnotations) => {
 const insertCoordinates = (userId, coordinates) => {
   return new Promise((resolve, reject) => {
     console.log("model");
-    console.log(coordinates);
+    // console.log(coordinates);
 
     let isUpated = false;
     coordinates.forEach(obj => {
-      if (obj.labelId !== undefined) {
+      if (!obj.labelId.toString().includes("fresh")) {
         isUpated = true;
       }
       const bindings = [obj.type, obj.tag, obj.x, obj.y, obj.width, obj.height, obj.scale.X, obj.scale.Y, userId, obj.imageId];
@@ -95,8 +80,7 @@ const insertCoordinates = (userId, coordinates) => {
       });
     });
     if (!isUpated) {
-      // 代表沒upadte過original表
-      // console.log(isUpated);
+      // 代表沒upadte過original table
       pool.query("UPDATE original_image SET status = ? WHERE image_id = ?", [1, coordinates[0].imageId], (err, result) => {
         if (err) reject(err);
         resolve({ result, msg: "Coordinates insert and status update" });
@@ -104,15 +88,6 @@ const insertCoordinates = (userId, coordinates) => {
     } else {
       resolve({ msg: "Coordinates insert only" });
     }
-
-    // pool.query("INSERT INTO label_result SET type = ?, coordinates_xy = point(?,?), coordinates_wh = point(?,?), user_id = ?, image_id = ?", [coordinates.type, coordinates.x, coordinates.y, coordinates.width, coordinates.height, userId, coordinates.imageId], (err, result) => {
-    //   if (err) reject(err);
-
-    //   pool.query("UPDATE original_image SET status = ? WHERE image_id = ?", [1, coordinates.imageId], (err, result) => {
-    //     if (err) reject(err);
-    //     resolve(result);
-    //   });
-    // });
   });
 };
 

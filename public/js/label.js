@@ -181,9 +181,17 @@ const setPanEvents = (canvas) => {
 
       // bug: imgOwner目前從labels[0]取得，但如果圖還沒有任何標註，則擁有者是誰？要去哪抓？ sol:一開始回傳labels也要帶owner
       // 如果是目前使用者自己上傳的話，就是該使用者
-      const imgOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
-      console.log("imgowner:", labels[0].owner, "Cuurent userId:", userId);
-      console.log("imgOwner:", imgOwner);
+      // const imgOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
+      let imgOwner; // maybe global is better?
+      if (labels === undefined) {
+        imgOwner = userId;
+        console.log(imgOwner, labels);
+      } else if (labels[0].owner) {
+        imgOwner = labels[0].owner;
+        console.log(imgOwner);
+        console.log(labels);
+      }
+
       genLabelTable(imgOwner, userId, latestObj.labelId, latestObj.tag, "your", remove = true);
     }
   });
@@ -316,9 +324,12 @@ window.onload = (e) => {
         imageId = url.searchParams.get("id");
         imageSrc = url.searchParams.get("src");
         if (imageSrc && imageId) {
+          // 選用別人上傳的
           renderImageSrc(imageSrc);
           labels = await getImageLabels(res.id, imageId);
-          if (labels[0].owner) {
+          console.log("labels:");
+          console.log(labels);
+          if (!labels[0].msg) {
             activateLabelBtn(labels);
             renderImageLabels(labels, renderTags = true, userId);
             state = canvas.toJSON();
@@ -328,15 +339,6 @@ window.onload = (e) => {
         // Upload Original Image
         const uploadBtn = document.querySelector(".upload-btn");
         uploadBtn.onclick = (e) => {
-          // Swal.fire({
-          //   toast: true,
-          //   icon: "success",
-          //   title: "Uploading",
-          //   position: "top-end",
-          //   showConfirmButton: false,
-          //   timer: 3000,
-          //   timerProgressBar: true
-          // });
           let timerInterval;
           Swal.fire({
             title: "Uploading and Processing ...",
@@ -409,7 +411,8 @@ const commitLabel = (canvas) => {
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
     });
   });
-  console.log(coordinates);
+  console.log({ before: labels, after: coordinates });
+  // console.log(coordinates);
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
     body: JSON.stringify({
@@ -424,45 +427,36 @@ const commitLabel = (canvas) => {
       if (res.status === 200) {
         return res.json();
       } else if (res.status === 401) {
-        // alert("Please Login.");
-        Swal.fire("Please Login.");
+        Swal.fire("Please Login again.");
         return window.location.assign("/login.html");
-      } else {
-        return res.json();
+      } else if (res.status === 500) {
+        console.log("Server Internal Error...");
       }
     })
     .then((res) => {
-      console.log(res);
-      if (res.error === "Cannot find your email account.") {
-        // alert(`${res.error}Please Signup`);
-        Swal.fire(`${res.error}Please Signup`);
-        window.location.assign("login.html");
-      } else if (res.error === "Forbidden: TokenExpiredError") {
-        // alert(res.error);
-        Swal.fire(res.error);
-        window.location.assign("login.html");
-      } else {
-        if (res.msg === "Nothing new to submit") {
-          Swal.fire({
-            toast: true,
-            title: "Submit done, no new label coordiantes.",
-            icon: "info",
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            didOpen: (toast) => {
-              toast.addEventListener("mouseenter", Swal.stopTimer);
-              toast.addEventListener("mouseleave", Swal.resumeTimer);
-            }
-          });
-        } else {
+      if (res) {
+        console.log(res);
+        if (res.labeler) {
           Swal.fire({
             toast: true,
             title: "Submit done.",
             icon: "success",
             position: "top-end",
             showConfirmButton: false,
-            timer: 3000,
+            timer: 3500,
+            didOpen: (toast) => {
+              toast.addEventListener("mouseenter", Swal.stopTimer);
+              toast.addEventListener("mouseleave", Swal.resumeTimer);
+            }
+          });
+        } else if (res.msg === "Nothing new to submit") {
+          Swal.fire({
+            toast: true,
+            title: "Submit done, no new label coordiantes.",
+            icon: "info",
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3500,
             didOpen: (toast) => {
               toast.addEventListener("mouseenter", Swal.stopTimer);
               toast.addEventListener("mouseleave", Swal.resumeTimer);
