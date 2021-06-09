@@ -579,7 +579,7 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
     const labeler = arr.labeler;
     const tag = arr.tag;
 
-    if (labeler === "ai") {
+    if (userId === labeler || labeler === "ai") {
       // console.log("genLabelTable for api");
       genLabelTable(imgOwner, labeler, labelId, tag, "AI", remove = true);
     } else {
