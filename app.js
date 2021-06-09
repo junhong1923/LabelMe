@@ -33,14 +33,13 @@ app.get("/", (req, res) => {
 });
 
 // Page not found
-// app.use((err, res, next) => {
-//   // console.log(err);
-//   res.status(500).send(err);
-// });
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "/public/404.html"));
+});
 
 // Error handling
-app.use((err, res) => {
-  console.log(err);
+app.use((err, req, res, next) => {
+  console.log(err.stack);
   res.status(500).send("Error handling: Internal Server Error");
 });
 
