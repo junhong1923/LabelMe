@@ -50,7 +50,7 @@ const uploadS3 = multer({
       const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
       const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
       const timeStr = `${year}-${month}-${day}`;
-      const savePath = `${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
+      const savePath = `/raw-images/${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
       cb(null, savePath);
     }
   })
@@ -113,16 +113,15 @@ const writePredictions = (objects, filename) => {
 const getS3BufferData = (multerData) => {
   return new Promise((resolve, reject) => {
     const params = {
-      Bucket: process.env.S3_BUCKET.split("/")[0],
-      Key: process.env.S3_BUCKET.split("/")[1] + "/" + multerData.key
+      Bucket: process.env.S3_BUCKET,
+      Key: multerData.key
     };
 
     s3.getObject(params, (err, data) => {
       if (err) {
-        console.log(err, err.stack);
+        console.log(err);
         reject(err);
       }
-
       resolve(data.Body);
     });
   });

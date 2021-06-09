@@ -10,33 +10,40 @@ async function localizeObjects (req) {
   // Instantiates a client. If you don't specify credentials when constructing
   // the client, the client library will look for credentials in the
   // environment.
-  const client = new vision.ImageAnnotatorClient({
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-  });
+  try {
+    const client = new vision.ImageAnnotatorClient({
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+    });
 
-  const bufferData = await utils.getS3BufferData(req.file);
-  const request = {
-    image: { content: bufferData }
-  };
+    const bufferData = await utils.getS3BufferData(req.file);
 
-  // const s3Uri = "s3://" + req.file.bucket + "/" + req.file.key;
-  // console.log(s3Uri);
-  const [result] = await client.objectLocalization(request);
-  // console.log(result);
-  // 先不要寫檔，怕速度太慢
-  // const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
-  // console.log(filePath);
-  // utils.writePredictions(result, filePath);
+    const request = {
+      image: { content: bufferData }
+    };
 
-  const objects = result.localizedObjectAnnotations;
-  // console.log(objects);
-  // objects.forEach(object => {
-  //   console.log(`Name: ${object.name}`);
-  //   console.log(`Confidence: ${object.score}`);
-  //   const vertices = object.boundingPoly.normalizedVertices;
-  //   vertices.forEach(v => console.log(`x: ${v.x}, y:${v.y}`));
-  // });
-  return objects;
+    // const s3Uri = "s3://" + req.file.bucket + "/" + req.file.key;
+    // console.log(s3Uri);
+    const [result] = await client.objectLocalization(request);
+    // console.log(result);
+    // 先不要寫檔，怕速度太慢
+    // const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
+    // console.log(filePath);
+    // utils.writePredictions(result, filePath);
+
+    const objects = result.localizedObjectAnnotations;
+    // console.log(objects);
+    // objects.forEach(object => {
+    //   console.log(`Name: ${object.name}`);
+    //   console.log(`Confidence: ${object.score}`);
+    //   const vertices = object.boundingPoly.normalizedVertices;
+    //   vertices.forEach(v => console.log(`x: ${v.x}, y:${v.y}`));
+    // });
+    return objects;
+  } catch (err) {
+    console.log("inside func localizeObjects:");
+    console.log(err.stack);
+    return err;
+  }
 };
 
 const saveOriImage = async (req, res) => {
@@ -46,16 +53,22 @@ const saveOriImage = async (req, res) => {
   const imgFileName = req.file.originalname;
 
   console.log("label controller");
-  // console.log(req.file);
-  const localizedAnnotations = await localizeObjects(req);
+  console.log(req.file);
+  try {
+    const localizedAnnotations = await localizeObjects(req);
+    console.log(1);
+    const imgResult = await Label.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
+    console.log(imgResult);
+    const imageId = imgResult.imageId;
+    const apiResult = Label.insertApiCoordinates(imageId, localizedAnnotations); // let it store to db async
 
-  const imgResult = await Label.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-  console.log(imgResult);
-  const imageId = imgResult.imageId;
-  const apiResult = Label.insertApiCoordinates(imageId, localizedAnnotations); // let it store to db async
-
-  if (imgResult.result.changedRows === 1) {
-    res.status(200).json({ userId, imgSize, imgPath, inference: localizedAnnotations });
+    if (imgResult.result.changedRows === 1) {
+      res.status(200).json({ userId, imgSize, imgPath, inference: localizedAnnotations });
+    }
+  } catch (err) {
+    console.log("inside controller saveImg:");
+    console.log(err.stack);
+    res.status(500).send("Internal Server Error...");
   }
 };
 
@@ -75,20 +88,6 @@ const compareLabelsPair = (beforeLabels, afterLabels) => {
         }
       });
     }
-    // if (afterObj.labelId) {
-    //   // 有 label_id 則要檢查 originalLabels, obj 是否重複
-    //   beforeLabels.forEach(beforeObj => {
-    //     if (afterObj.labelId === beforeObj.id) { // 如果before本來的圖片沒標注，labels = [{owner, msg}]，可能有err
-    //       if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
-    //         console.log("remove duplicated coordinate");
-    //       } else {
-    //         checkedLabelsArr.push(afterObj);
-    //       }
-    //     }
-    //   });
-    // } else {
-    //   checkedLabelsArr.push(afterObj);
-    // }
   });
   // console.log("----");
   // console.log(checkedLabelsArr);
