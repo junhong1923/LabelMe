@@ -30,4 +30,59 @@ const getImages = (type, userId, status) => {
   });
 };
 
-module.exports = { getImages };
+const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, conn) => {
+      if (err) reject(err);
+      conn.beginTransaction((err) => {
+        if (err) {
+          conn.rollback(() => { conn.release(); });
+          reject(err);
+        } else {
+          // 1. insert userId, imgPath into original_image
+          conn.query("INSERT INTO original_image SET file_name = ?, image_path = ?, user_id = ?", [imgFileName, imgPath, userId], (err, result) => {
+            if (err) {
+              conn.rollback(() => { conn.release(); });
+              reject(err);
+            } else {
+              const imageId = result.insertId;
+              // 2. insert imgSize(capacity累加) and update qty in user
+              conn.query("UPDATE user SET img_qty = img_qty + 1, capacity = capacity + ? WHERE id = ?", [imgSize, userId], (err, result) => {
+                if (err) {
+                  conn.rollback(() => { conn.release(); });
+                  reject(err);
+                } else {
+                  conn.commit((err) => {
+                    if (err) {
+                      conn.rollback(() => { conn.release(); });
+                      reject(err);
+                    } else {
+                      // Success
+                      conn.release();
+                      resolve({ imageId, result });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+  });
+};
+
+const queryImageOwner = (imageId) => {
+  return new Promise((resolve, reject) => {
+    pool.query("SELECT user_id as owner FROM original_image WHERE image_id = ?", [imageId], (err, result) => {
+      if (err) reject(err);
+      resolve(result[0]);
+    });
+  });
+};
+
+module.exports = {
+  getImages,
+  insertOriginalImage,
+  queryImageOwner
+};

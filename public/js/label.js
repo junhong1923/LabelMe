@@ -126,7 +126,8 @@ const setPanEvents = (canvas) => {
           fill: "#00000000",
           width: 0,
           height: 0,
-          hasRotatingPoint: false
+          hasRotatingPoint: false,
+          selectable: false // 6/10 測試：看能否避免拉匡時 同時移動到鄰近的框
         });
         rect.labelId = "fresh_" + mouseClickId;
         rect.tag = selectedTag;
@@ -374,7 +375,7 @@ const submitted = (event) => {
   // console.log(event.target.elements[1].value);
   const formData = new FormData(FORM);
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/1.0/label/ori-image");
+  xhr.open("POST", "/api/1.0/image/upload");
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.onreadystatechange = () => {
     if (xhr.readyState === 4) {
@@ -390,9 +391,11 @@ const submitted = (event) => {
           timer: 3000,
           timerProgressBar: true
         });
-        renderApiLabels(inference);
+        if (!inference.errno) {
+          renderApiLabels(inference);
+        } else console.log("vision api error...");
       }
-    }
+    } // else console.log(xhr.readyState, xhr.response);
   };
   xhr.send(formData);
 };
@@ -486,7 +489,7 @@ const renderImageSrc = (url) => {
 
 const getImageLabels = (userId, imageId) => {
   return new Promise((resolve, reject) => {
-    fetch(`/api/1.0/label/load-coordinates?user=${userId}&img=${imageId}`, { method: "GET" })
+    fetch(`/api/1.0/label/coordinates?user=${userId}&img=${imageId}`, { method: "GET" })
       .then((res) => {
         if (res.status === 200) {
           return res.json();
@@ -501,7 +504,7 @@ const getImageLabels = (userId, imageId) => {
 
 const delDbLabel = (imageId, userId, labelId) => {
   return new Promise((resolve, reject) => {
-    fetch(`/api/1.0/label/load-coordinates?img=${imageId}&user=${userId}&labelId=${labelId}`, { method: "" })
+    fetch(`/api/1.0/label/coordinates?img=${imageId}&user=${userId}&labelId=${labelId}`, { method: "" })
       .then((res) => {
         if (res.status === 200) {
           return res.json();
