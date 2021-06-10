@@ -178,7 +178,7 @@ const setPanEvents = (canvas) => {
     if (canvasObjCount !== canvas.getObjects().length) {
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
-      console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
+      // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
 
       // bug: imgOwner目前從labels[0]取得，但如果圖還沒有任何標註，則擁有者是誰？要去哪抓？ sol:一開始回傳labels也要帶owner
       // 如果是目前使用者自己上傳的話，就是該使用者
@@ -189,8 +189,8 @@ const setPanEvents = (canvas) => {
         console.log(imgOwner, labels);
       } else if (labels[0].owner) {
         imgOwner = labels[0].owner;
-        console.log(imgOwner);
-        console.log(labels);
+        // console.log(imgOwner);
+        // console.log(labels);
       }
 
       genLabelTable(imgOwner, userId, latestObj.labelId, latestObj.tag, "your", remove = true);
@@ -401,7 +401,7 @@ const submitted = (event) => {
 };
 
 const commitLabel = (canvas) => {
-  console.log(labels);
+  // console.log(labels);
   // console.log(canvas.toDataURL("image/jpeg")); // base64
   canvasJSON = canvas.toJSON();
 
@@ -414,7 +414,7 @@ const commitLabel = (canvas) => {
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
     });
   });
-  console.log({ before: labels, after: coordinates });
+  // console.log({ before: labels, after: coordinates });
   // console.log(coordinates);
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
@@ -553,7 +553,16 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
   Array.from(tagSet).forEach(function (value, idx) {
     tagColorMap[value] = colorArr[idx];
   });
-  // console.log(tagSet, tagColorMap); // ai抓的tag，如果都是臉會生成兩個同樣顏色的tag，要再去判斷
+  // console.log(tagSet, tagColorMap);
+  // render tag using colorSet to avoid duplicate
+  if (renderTags) {
+    for (const key in tagColorMap) {
+      // console.log(key, tagColorMap[key]);
+      LabelTagsDOM = genLabelTagsDOM(key, tagColorMap[key]);
+      tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
+    }
+  }
+
   // using tag and color map to render labels
   labels.forEach((arr, idx) => {
     const XY = arr.coordinates_xy;
@@ -571,20 +580,16 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
     label.tag = arr.tag;
     canvas.add(label);
 
-    // render Tags inside Labels
-    if (renderTags) {
-      LabelTagsDOM = genLabelTagsDOM(arr.tag, tagColorMap[arr.tag]);
-      tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
-    }
-
     // render label list table
     const labelId = arr.id;
     const labeler = arr.labeler;
     const tag = arr.tag;
 
-    if (userId === labeler || labeler === "ai") {
+    if (userId === labeler) {
       // console.log("genLabelTable for api");
-      genLabelTable(imgOwner, labeler, labelId, tag, "AI", remove = true);
+      genLabelTable(imgOwner, labeler, labelId, tag, "your", remove = true);
+    } else if (labeler === "ai") {
+      genLabelTable(imgOwner, labeler, labelId, tag, labeler, remove = true);
     } else {
       genLabelTable(imgOwner, labeler, labelId, tag, `shared.${idx + 1}`);
     }
