@@ -17,7 +17,7 @@ let [lastX, lastY] = [0, 0];
 let isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
-let inference; // ???
+// let inference; // ???
 const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
 const tagsDiv = document.querySelector("#tags");
 let selectedTag;
@@ -327,14 +327,27 @@ window.onload = (e) => {
         if (imageSrc && imageId) {
           // 選用別人上傳的
           renderImageSrc(imageSrc);
-          labels = await getImageLabels(res.id, imageId);
-          console.log("labels:");
-          console.log(labels);
-          if (!labels[0].msg) {
-            activateLabelBtn(labels);
-            renderImageLabels(labels, renderTags = true, userId);
-            state = canvas.toJSON();
+          // labels = await getImageLabels(res.id, imageId);
+          data = await getImageLabels(res.id, imageId);
+          console.log(data);
+          labels = data.userLabel;
+          const inference = data.apiLabel;
+          // console.log("labels:");
+          // console.log(labels);
+
+          if (inference.length > 0) {
+            const transformArr = transformCoordinates(inference);
+            labels = [...labels, ...transformArr];
+          } else {
+            console.log("There is no api inference label...");
           }
+
+          if (!labels[0].msg) {
+            renderImageLabels(labels, renderTags = true, userId);
+          }
+
+          activateLabelBtn(labels, inference);
+          state = canvas.toJSON();
         }
 
         // Upload Original Image
@@ -381,7 +394,7 @@ const submitted = (event) => {
     if (xhr.readyState === 4) {
       console.log(JSON.parse(xhr.response));
       if (JSON.parse(xhr.response).inference) {
-        inference = JSON.parse(xhr.response).inference;
+        const inference = JSON.parse(xhr.response).inference;
         Swal.fire({
           toast: true,
           icon: "success",
@@ -474,6 +487,8 @@ const commitLabel = (canvas) => {
 
 const renderImageSrc = (url) => {
   fabric.Image.fromURL(url, (img) => {
+    uploadImg.width = img.width;
+    uploadImg.height = img.height;
     const oImg = img.set({
       left: (canvas.width - img.width) / 2,
       top: (canvas.height - img.height) / 2,
@@ -517,9 +532,8 @@ const delDbLabel = (imageId, userId, labelId) => {
   });
 };
 
-const renderApiLabels = (inference) => {
-  // console.log(inference);
-  const renderInput = [];
+const transformCoordinates = (inference) => {
+  const renderArr = [];
   // console.log(uploadImg.width, uploadImg.height);
   inference.forEach((obj, idx) => {
     const id = `inference_${idx + 1}`;
@@ -533,9 +547,31 @@ const renderApiLabels = (inference) => {
       width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
       height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
     };
-    renderInput.push({ id, image_id: imageId, owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
+    renderArr.push({ id, image_id: parseInt(imageId), owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
   });
+  return renderArr;
+};
+
+const renderApiLabels = (inference) => {
+  // console.log(inference);
+  // const renderInput = [];
+  // // console.log(uploadImg.width, uploadImg.height);
+  // inference.forEach((obj, idx) => {
+  //   const id = `inference_${idx + 1}`;
+  //   const labeler = "ai";
+  //   const imgOwner = userId;
+  //   const inferenceTag = obj.name;
+  //   const inferenceScore = obj.score;
+  //   const inferenceCoordiantes = {
+  //     left: obj.boundingPoly.normalizedVertices[0].x * uploadImg.width + (canvas.width - uploadImg.width) / 2,
+  //     top: obj.boundingPoly.normalizedVertices[0].y * uploadImg.height + (canvas.height - uploadImg.height) / 2,
+  //     width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
+  //     height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
+  //   };
+  //   renderInput.push({ id, image_id: imageId, owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
+  // });
   // 一次整理好, render
+  const renderInput = transformCoordinates(inference);
   renderImageLabels(renderInput, renderTags = true, userId);
 };
 
@@ -616,7 +652,7 @@ const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false
   `;
 };
 
-const activateLabelBtn = (labels) => {
+const activateLabelBtn = (labels, inference) => {
   const LabelBtn = document.getElementById("flexSwitchCheckChecked");
   LabelBtn.removeAttribute("disabled");
 
@@ -624,6 +660,8 @@ const activateLabelBtn = (labels) => {
     if (canvas.getObjects().length === 0) {
       // if only have image, then render label
       renderImageLabels(labels, renderTags = false, userId);
+      // 還要新render api inference，會重複生成
+      // renderApiLabels(inference);
     } else {
       canvas.getObjects().forEach(arr => {
         canvas.remove(arr);
