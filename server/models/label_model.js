@@ -8,9 +8,9 @@ const insertApiCoordinates = (imageId, localizedAnnotations) => {
     localizedAnnotations.forEach(obj => {
       const vertices = obj.boundingPoly.normalizedVertices;
 
-      const bindings = [obj.mid, obj.languageCode, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
+      const bindings = [obj.mid, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
       // console.log(bindings);
-      const sql = "INSERT INTO api_inference SET mid = ?, languageCode = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
+      const sql = "INSERT INTO api_inference SET mid = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
       pool.query(sql, bindings, (err, result) => {
         if (err) reject(err);
         // console.log(result);
@@ -72,8 +72,20 @@ const queryLabels = (imageId) => {
   });
 };
 
+const queryApiInference = (imageId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT id, name, score, normalizedVertices_0, normalizedVertices_1, normalizedVertices_2, normalizedVertices_3 FROM api_inference WHERE image_id = ?";
+    pool.query(sql, imageId, (err, result) => {
+      if (err) reject(err);
+      // console.log(result);
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
   insertApiCoordinates,
   insertCoordinates,
-  queryLabels
+  queryLabels,
+  queryApiInference
 };
