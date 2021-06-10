@@ -69,9 +69,24 @@ const getLabels = async (req, res) => {
   // const userId = req.query.user;
   const imgId = req.query.img;
   const result = await Label.queryLabels(imgId);
-  // console.log(result);
+  let apiResult = await Label.queryApiInference(imgId);
+
+  if (apiResult.length > 0) {
+    apiResult = apiResult.map(obj => {
+      return {
+        id: obj.id,
+        name: obj.name,
+        score: obj.score,
+        boundingPoly: {
+          normalizedVertices: [obj.normalizedVertices_0, obj.normalizedVertices_1, obj.normalizedVertices_2, obj.normalizedVertices_3]
+        }
+      };
+    });
+  }
+  console.log(apiResult);
+
   if (result.length > 0) {
-    res.status(200).send(result);
+    res.status(200).send({ userLabel: result, apiLabel: apiResult });
   } else {
     // result = []
     const imgOwner = await queryImageOwner(imgId);
