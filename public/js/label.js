@@ -335,14 +335,14 @@ window.onload = (e) => {
           // console.log("labels:");
           // console.log(labels);
 
-          if (inference.length > 0) {
+          if (inference !== undefined && inference.length > 0) {
             const transformArr = transformCoordinates(inference);
             labels = [...labels, ...transformArr];
           } else {
             console.log("There is no api inference label...");
           }
 
-          if (!labels[0].msg) {
+          if (labels !== undefined && !labels[0].msg) {
             renderImageLabels(labels, renderTags = true, userId);
           }
 
@@ -660,8 +660,6 @@ const activateLabelBtn = (labels, inference) => {
     if (canvas.getObjects().length === 0) {
       // if only have image, then render label
       renderImageLabels(labels, renderTags = false, userId);
-      // 還要新render api inference，會重複生成
-      // renderApiLabels(inference);
     } else {
       canvas.getObjects().forEach(arr => {
         canvas.remove(arr);
@@ -725,7 +723,7 @@ const genLabelTagsDOM = (tagName, color) => {
         </svg>
       </div>
       <div class="label-title">${tagName}</div>
-      <div class="label-display"><img src="../images/icons/Eye-Show.svg" alt="label-display" width="20px" height="20px"></div>
+      <div class="label-display"><img class="active" src="../images/icons/Eye-Show.svg" alt="label-display" width="20px" height="20px"></div>
   `;
   newTag.innerHTML = tagHtml;
   return newTag;
@@ -743,9 +741,33 @@ tagsDiv.onclick = (e) => {
 
     // auto change mode to bounding when tag selected
     currentMode = "bounding";
+    canvas.getObjects().forEach(obj => { obj.selectable = false; });
   }
 
   // display or not
+  if (e.target.alt === "label-display") {
+    const clickedTagColor = e.target.parentNode.parentNode.firstElementChild.id;
+    if (e.target.className === "active") {
+      e.target.className = "";
+      e.target.src = "../images/icons/Eye-Show-Disable.svg";
+      canvas.getObjects().forEach(arr => {
+        if (arr.stroke === clickedTagColor) {
+          arr.opacity = 0;
+          canvas.renderAll();
+        }
+      });
+    } else {
+      e.target.className = "active";
+      e.target.src = "../images/icons/Eye-Show.svg";
+      canvas.getObjects().forEach(arr => {
+        if (arr.stroke === clickedTagColor) {
+          arr.opacity = 1;
+          canvas.renderAll();
+        }
+      });
+    }
+    console.log(clickedTagColor);
+  }
 };
 
 // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏

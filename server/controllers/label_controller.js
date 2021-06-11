@@ -85,7 +85,7 @@ const getLabels = async (req, res) => {
   }
   console.log(apiResult);
 
-  if (result.length > 0) {
+  if (result.length > 0 || apiResult.length > 0) {
     res.status(200).send({ userLabel: result, apiLabel: apiResult });
   } else {
     // result = []
