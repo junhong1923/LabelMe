@@ -280,6 +280,15 @@ reader.addEventListener("load", () => { // Loading Image
     // canvas.add(img);
     canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
     canvas.requestRenderAll();
+
+    // clean tags and labels in table list
+    const tagsCount = tagsDiv.childElementCount;
+    if (tagsCount > 1) {
+      for (let i = 0; i < tagsCount - 1; i++) {
+        tagsDiv.removeChild(tagsDiv.firstElementChild);
+      }
+      tableBody.innerHTML = "";
+    }
   });
 });
 
