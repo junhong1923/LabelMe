@@ -3,7 +3,8 @@ const { authentication } = require("../../util/util");
 
 const {
   saveCoordinates,
-  getLabels
+  getLabels,
+  deleteLabel
 } = require("../controllers/label_controller");
 
 router.route("/label/coordinates")
@@ -11,5 +12,8 @@ router.route("/label/coordinates")
 
 router.route("/label/coordinates")
   .get(getLabels);
+
+router.route("/label/coordinates/:labelId")
+  .delete(authentication(), deleteLabel);
 
 module.exports = router;

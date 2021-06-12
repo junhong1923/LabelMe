@@ -68,33 +68,65 @@ const getLabels = async (req, res) => {
   console.log(req.query);
   // const userId = req.query.user;
   const imgId = req.query.img;
-  const result = await Label.queryLabels(imgId);
-  let apiResult = await Label.queryApiInference(imgId);
 
-  if (apiResult.length > 0) {
-    apiResult = apiResult.map(obj => {
-      return {
-        id: obj.id,
-        name: obj.name,
-        score: obj.score,
-        boundingPoly: {
-          normalizedVertices: [obj.normalizedVertices_0, obj.normalizedVertices_1, obj.normalizedVertices_2, obj.normalizedVertices_3]
-        }
-      };
-    });
+  try {
+    const result = await Label.queryLabels(imgId);
+    let apiResult = await Label.queryApiInference(imgId);
+
+    if (apiResult.length > 0) {
+      apiResult = apiResult.map(obj => {
+        return {
+          id: obj.id,
+          name: obj.name,
+          score: obj.score,
+          boundingPoly: {
+            normalizedVertices: [obj.normalizedVertices_0, obj.normalizedVertices_1, obj.normalizedVertices_2, obj.normalizedVertices_3]
+          }
+        };
+      });
+    }
+    // console.log(apiResult);
+
+    if (result.length > 0 || apiResult.length > 0) {
+      res.status(200).send({ userLabel: result, apiLabel: apiResult });
+    } else {
+      // result = []
+      const imgOwner = await queryImageOwner(imgId);
+      res.status(200).send([{ owner: imgOwner.owner, msg: "Label not found" }]);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error...");
   }
-  console.log(apiResult);
+};
 
-  if (result.length > 0 || apiResult.length > 0) {
-    res.status(200).send({ userLabel: result, apiLabel: apiResult });
-  } else {
-    // result = []
-    const imgOwner = await queryImageOwner(imgId);
-    res.status(200).send([{ owner: imgOwner.owner, msg: "Label not found" }]);
+const deleteLabel = async (req, res) => {
+  console.log("controller deleteLabel");
+  const labelId = req.params.labelId;
+
+  let deleteResult;
+
+  try {
+    if (labelId.includes("inference")) {
+      // api inference
+      deleteResult = await Label.deleteApiLabel(labelId.split("_")[1]);
+    } else {
+      // user label
+      deleteResult = await Label.deleteUserLabel(labelId);
+    }
+
+    if (deleteResult.changedRows === 1) {
+      console.log(`${labelId} has been deleted...`);
+      res.send({ msg: `${labelId} has been deleted...` });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error...");
   }
 };
 
 module.exports = {
   saveCoordinates,
-  getLabels
+  getLabels,
+  deleteLabel
 };

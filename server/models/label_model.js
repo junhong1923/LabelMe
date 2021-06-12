@@ -51,7 +51,7 @@ const insertCoordinates = (userId, coordinates) => {
 const queryLabels = (imageId) => {
   return new Promise((resolve, reject) => {
     // const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
-    const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.tag, coordinates_xy, coordinates_wh, scale, a.user_id as labeler, b.user_id as owner FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
+    const sql = "SELECT * FROM (SELECT a.status, a.id, a.image_id, a.tag, coordinates_xy, coordinates_wh, scale, a.user_id as labeler, b.user_id as owner FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.status =1 and c.image_id = ?";
     pool.query(sql, imageId, (err, result) => {
       if (err) reject(err);
       // console.log(result);
@@ -74,8 +74,30 @@ const queryLabels = (imageId) => {
 
 const queryApiInference = (imageId) => {
   return new Promise((resolve, reject) => {
-    const sql = "SELECT id, name, score, normalizedVertices_0, normalizedVertices_1, normalizedVertices_2, normalizedVertices_3 FROM api_inference WHERE image_id = ?";
+    const sql = "SELECT id, name, score, normalizedVertices_0, normalizedVertices_1, normalizedVertices_2, normalizedVertices_3 FROM api_inference WHERE image_id = ? and status = 1";
     pool.query(sql, imageId, (err, result) => {
+      if (err) reject(err);
+      // console.log(result);
+      resolve(result);
+    });
+  });
+};
+
+const deleteApiLabel = (labelId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "UPDATE api_inference SET status = 0 WHERE id = ?";
+    pool.query(sql, labelId, (err, result) => {
+      if (err) reject(err);
+      // console.log(result);
+      resolve(result);
+    });
+  });
+};
+
+const deleteUserLabel = (labelId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "UPDATE label_result SET status = 0 WHERE id = ?";
+    pool.query(sql, labelId, (err, result) => {
       if (err) reject(err);
       // console.log(result);
       resolve(result);
@@ -87,5 +109,7 @@ module.exports = {
   insertApiCoordinates,
   insertCoordinates,
   queryLabels,
-  queryApiInference
+  queryApiInference,
+  deleteApiLabel,
+  deleteUserLabel
 };

@@ -526,15 +526,19 @@ const getImageLabels = (userId, imageId) => {
   });
 };
 
-const delDbLabel = (imageId, userId, labelId) => {
+const deleteLabel = (labelId) => {
   return new Promise((resolve, reject) => {
-    fetch(`/api/1.0/label/coordinates?img=${imageId}&user=${userId}&labelId=${labelId}`, { method: "" })
+    fetch(`/api/1.0/label/coordinates/${labelId}`, {
+      method: "DELETE",
+      headers: { authorization: `Bearer ${localStorage.getItem("token")}` }
+    })
       .then((res) => {
         if (res.status === 200) {
           return res.json();
         }
       })
       .then((res) => {
+        console.log(res);
         resolve(res);
       })
       .catch(err => reject(err));
@@ -545,7 +549,7 @@ const transformCoordinates = (inference) => {
   const renderArr = [];
   // console.log(uploadImg.width, uploadImg.height);
   inference.forEach((obj, idx) => {
-    const id = `inference_${idx + 1}`;
+    const id = `inference_${obj.id}`;
     const labeler = "ai";
     const imgOwner = userId;
     const inferenceTag = obj.name;
@@ -775,7 +779,6 @@ tagsDiv.onclick = (e) => {
         }
       });
     }
-    console.log(clickedTagColor);
   }
 };
 
@@ -790,7 +793,7 @@ tableBody.onclick = (e) => {
   } else {
     labelId = e.target.id;
   }
-  // console.log(labelId);
+  console.log(labelId);
   if (e.target.alt === "remove") {
     Swal.fire({
       title: "Are you sure?",
@@ -813,13 +816,12 @@ tableBody.onclick = (e) => {
         });
         // remove label on table list
         for (let i = 0; i < tableBody.childElementCount; i++) {
-          if (tableBody.children[i].id === labelId) {
+          if (tableBody.children[i].id === labelId.toString()) {
             tableBody.removeChild(tableBody.children[i]);
           }
         }
 
-        // 這邊再發一隻api到後端資料庫刪除
-        // delDbLabel(imageId, userId, labelId)
+        deleteLabel(labelId);
 
         Swal.fire("Delete!", "This label has been deleted.", "success");
       }
