@@ -48,6 +48,17 @@ const insertCoordinates = (userId, coordinates) => {
   });
 };
 
+const getLabelTags = () => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT image_id, tag FROM label_result ORDER BY image_id";
+    pool.query(sql, (err, result) => {
+      if (err) reject(err);
+      // console.log(result);
+      resolve(result);
+    });
+  });
+};
+
 const queryLabels = (imageId) => {
   return new Promise((resolve, reject) => {
     // const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
@@ -108,6 +119,7 @@ const deleteUserLabel = (labelId) => {
 module.exports = {
   insertApiCoordinates,
   insertCoordinates,
+  getLabelTags,
   queryLabels,
   queryApiInference,
   deleteApiLabel,

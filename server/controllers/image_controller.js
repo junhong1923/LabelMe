@@ -1,5 +1,5 @@
 const Image = require("../models/image_model");
-const { insertApiCoordinates } = require("../models/label_model");
+const { insertApiCoordinates, getLabelTags } = require("../models/label_model");
 const utils = require("../../util/util");
 
 const getImages = async (req, res) => {
@@ -8,8 +8,33 @@ const getImages = async (req, res) => {
   const userId = req.query.userid;
   console.log({ type, status, userId });
 
-  const images = await Image.getImages(type, userId, status);
-  res.status(200).json(images);
+  try {
+    const images = await Image.getImages(type, userId, status);
+    const imageTags = await getLabelTags();
+
+    const tagsObj = {};
+    imageTags.forEach(obj => {
+      if (obj.image_id in tagsObj) {
+        tagsObj[obj.image_id].push(obj.tag);
+      } else {
+        tagsObj[obj.image_id] = [obj.tag];
+      }
+    });
+    // console.log(tagsObj);
+
+    images.forEach(obj => {
+      if (obj.image_id.toString() in tagsObj) {
+        // console.log(obj.image_id);
+        // console.log(tagsObj[obj.image_id.toString()]);
+        obj.tag = tagsObj[obj.image_id.toString()];
+      }
+    });
+    // console.log(images);
+    res.status(200).json(images);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error...");
+  }
 };
 
 const saveOriginalImage = async (req, res) => {
