@@ -152,6 +152,10 @@ window.onload = (e) => {
         .then((res) => { return res.json(); })
         .then((res) => {
           if (res.error) {
+            imageRow.innerHTML = "";
+            Swal.fire("Login to see private images.");
+            // disable filter tab btn
+
             console.log(res);
           } else {
             userId = res.id;
