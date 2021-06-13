@@ -24,7 +24,7 @@ const getImageData = (type, userId, status) => {
       } else { console.log(res.status); }
     })
     .then((res) => {
-    //   console.log(res);
+      console.log(res);
       if (!res.error) {
         imageRow.innerHTML = "";
 
@@ -70,7 +70,7 @@ const getImageData = (type, userId, status) => {
           res.forEach(obj => {
             const imgHref = `html/label.html?id=${obj.image_id}&src=${obj.image_path}`;
             const imgPath = obj.image_path;
-            const labelStatus = obj.status ? "labeled" : "unlabeled";
+            // const labelStatus = obj.status ? "labeled" : "unlabeled";
             const html = `
                 <div id="img-${obj.image_id}" class="col-4" draggable="true">
                     <div class="card shadow-sm">
@@ -78,7 +78,6 @@ const getImageData = (type, userId, status) => {
                             <img src=${imgPath} width="100%" height="100%" >
                         </a>
                         <p>Tag: ${obj.tag}</p>
-                        <p>Status: ${labelStatus}</p>
                     </div>
                 </div>
                 `;
@@ -101,15 +100,14 @@ const getImageData = (type, userId, status) => {
           res.forEach(obj => {
             const imgHref = `html/label.html?id=${obj.image_id}&src=${obj.image_path}`;
             const imgPath = obj.image_path;
-            const labelStatus = obj.status ? "labeled" : "unlabeled";
+            // const labelStatus = obj.status ? "labeled" : "unlabeled";
             const html = `
                 <div class="col-4">
                     <div class="card shadow-sm">
                         <a class="image" href=${imgHref}>
                             <img src=${imgPath} width="100%" height="100%">
                         </a>
-                        <p>Tag: ${obj.tag}</p>
-                        <p>Status: ${labelStatus}</p>
+                        <p><strong>Tag: ${obj.tag}</strong></p>
                     </div>
                 </div>
                 `;

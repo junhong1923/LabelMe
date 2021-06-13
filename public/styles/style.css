@@ -76,6 +76,11 @@ header #logo:hover {
   flex-wrap: wrap;
 }
 
+.album .container .card p {
+  font-size: 20px;
+  text-align: center;
+}
+
 .album .container .row .card {
   margin-bottom: 1rem;
 }
