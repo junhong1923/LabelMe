@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home page</title>
+    <link rel=icon href="../images/favicon.png" sizes="16x16" type="image/png">
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
@@ -15,16 +16,17 @@
   </head>
 
   <body>
-    <header class="p-2 mb-3 border-bottom">
-    <!-- <head class="navbar-dark fixed-top bg-dark"> -->
+    <header class="p-2 mb-1 border-bottom sticky-top">
       <div class="container">
         <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-          <a href="/" class="navbar-brand bi">Label Me</a>
+          <a href="/" class="navbar-brand">
+            <img src="../images/favicon.png" alt="logo" style="width:50px; height:45px">
+          </a>
           <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-            <li><a class="nav-link px-2 link-dark">About</a></li>
-            <!-- <li><a href="#" class="nav-link px-2 link-dark">Documentation</a></li> -->
+            <li><a href="/" class="nav-link px-2 link-dark" id="logo">ShareLabel</a></li>
+            <li><a class="nav-link px-2 link-light">About</a></li>
             <li id="nav-label">
-              <a href="./html/label.html" class="nav-link px-2 link-dark">Upload</a>
+              <a href="./html/label.html" class="nav-link px-2 link-light">Upload</a>
             </li>
           </ul>
           <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
@@ -36,7 +38,6 @@
               <img src="../images/member.png" alt="mdo" width="32" height="32" class="rounded-circle"/>
             </a>
             <ul class="dropdown-menu text-small" aria-labelledby="dropdownUser1">
-              <li><a class="dropdown-item" href="#">Settings</a></li>
               <li><a class="dropdown-item" href="#">Profile</a></li>
               <li><a class="dropdown-item" href="./html/label.html">Upload</a></li>
               <li>
@@ -174,12 +175,13 @@
       </div>
     </main>
 
-    <footer class="footer mt-auto text-muted py-5" style="background-color: #e3f2fd">
-      <div class="container">
-        <p class="float-end mb-1">
-          <a href="#">Back to top</a>
+    <footer class="footer py-3">
+      <div class="container d-flex justify-content-around">
+        <p>
+          <a href="#" class="link-light">Back to top</a>
         </p>
-        <p class="mb-1">LabelMe © Bootstrap</p>
+        <p>Contact: m81923@gmail.com</p>
+        <p>© 2021. All rights reserved.</p>
       </div>
     </footer>
 
