@@ -7,6 +7,7 @@ const compareLabelsPair = (beforeLabels, afterLabels) => {
     if (afterObj.labelId.toString().includes("fresh")) {
       checkedLabelsArr.push(afterObj);
     } else {
+      // 如果是ai預測的，labelId會有inference_xx，則ai的前後座標自己比較，否則就不用再存一次
       beforeLabels.forEach(beforeObj => {
         if (afterObj.labelId === beforeObj.id) { // 如果before本來的圖片沒標注，labels = [{owner, msg}]，可能有err
           if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
@@ -44,18 +45,19 @@ const saveCoordinates = async (req, res) => {
       checkedLabels = newLabels;
     } else if (originalLabels === undefined) { // condition: new upload img
       console.log("condition 3");
-      checkedLabels = newLabels;
+      console.log(newLabels);
+      checkedLabels = newLabels; // 還是要加以判斷是否都只有ai預測的，不能把ai的座標再存一次
     }
 
     if (checkedLabels.length === 0) {
       console.log("condition 4");
       res.status(200).send({ msg: "Nothing new to submit" });
     } else {
-      const result = await Label.insertCoordinates(userId, checkedLabels);
-      console.log(result.msg);
-      if (result.msg) {
-        res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
-      }
+      // const result = await Label.insertCoordinates(userId, checkedLabels);
+      // console.log(result.msg);
+      // if (result.msg) {
+      //   res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+      // }
     }
   } catch (err) {
     console.log(err);

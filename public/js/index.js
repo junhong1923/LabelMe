@@ -165,17 +165,17 @@ window.onload = (e) => {
       if (e.target.parentNode.id === "private") {
         if (e.target.innerHTML === "All") {
           getImageData("private", userId);
-        } else if (e.target.innerHTML === "Labeled") {
+        } else if (e.target.innerHTML === "User Label") {
           getImageData("private", userId, 1);
-        } else if (e.target.innerHTML === "Unlabeled") {
+        } else if (e.target.innerHTML === "Only AI Label") {
           getImageData("private", userId, 0);
         }
       } else {
         if (e.target.innerHTML === "All") {
           getImageData("public");
-        } else if (e.target.innerHTML === "Labeled") {
+        } else if (e.target.innerHTML === "User Label") {
           getImageData("public", null, 1);
-        } else if (e.target.innerHTML === "Unlabeled") {
+        } else if (e.target.innerHTML === "Only AI Label") {
           getImageData("public", null, 0);
         }
       }
@@ -235,4 +235,6 @@ const cancelDefault = (e) => {
 signout.onclick = () => {
   localStorage.removeItem("token");
   window.location.assign("/");
+  // const avatar = document.querySelector("#avatar");
+  // avatar.src = "../images/member.png";
 };
