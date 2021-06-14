@@ -436,8 +436,8 @@ const submitted = (event) => {
           title: "Upload done!",
           position: "top-end",
           showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true
+          timer: 3500
+          // timerProgressBar: true
         });
         if (!inference.errno) {
           renderApiLabels(inference);
@@ -455,14 +455,14 @@ const commitLabel = (canvas) => {
 
   const coordinates = [];
   canvasJSON.objects.forEach((arr, idx) => {
-    const labelId = canvas.getObjects()[idx].labelId;
+    const labelId = canvas.getObjects()[idx].labelId; // 新畫的id長怎麼樣？ 只有數字的話會錯
     const tag = canvas.getObjects()[idx].tag;
     const scale = { X: arr.scaleX, Y: arr.scaleY };
     coordinates.push({
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
     });
   });
-  // console.log({ before: labels, after: coordinates });
+  console.log({ before: labels, after: coordinates });
   // console.log(coordinates);
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
@@ -573,8 +573,9 @@ const deleteLabel = (labelId) => {
 
 const transformCoordinates = (inference) => {
   const renderArr = [];
-  // console.log(uploadImg.width, uploadImg.height);
-  inference.forEach((obj, idx) => {
+
+  inference.forEach(obj => {
+    // const id = obj.id; // commit label時會帶 canvas.getObjs()裡的labelId，所以要區分
     const id = `inference_${obj.id}`;
     const labeler = "ai";
     const imgOwner = userId;
@@ -585,7 +586,7 @@ const transformCoordinates = (inference) => {
       top: obj.boundingPoly.normalizedVertices[0].y * uploadImg.height + (canvas.height - uploadImg.height) / 2,
       width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
       height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
-    };
+    }; // 6/14 imageId 可以改從inference的imageId取
     renderArr.push({ id, image_id: parseInt(imageId), owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
   });
   return renderArr;
@@ -593,24 +594,9 @@ const transformCoordinates = (inference) => {
 
 const renderApiLabels = (inference) => {
   // console.log(inference);
-  // const renderInput = [];
-  // // console.log(uploadImg.width, uploadImg.height);
-  // inference.forEach((obj, idx) => {
-  //   const id = `inference_${idx + 1}`;
-  //   const labeler = "ai";
-  //   const imgOwner = userId;
-  //   const inferenceTag = obj.name;
-  //   const inferenceScore = obj.score;
-  //   const inferenceCoordiantes = {
-  //     left: obj.boundingPoly.normalizedVertices[0].x * uploadImg.width + (canvas.width - uploadImg.width) / 2,
-  //     top: obj.boundingPoly.normalizedVertices[0].y * uploadImg.height + (canvas.height - uploadImg.height) / 2,
-  //     width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
-  //     height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
-  //   };
-  //   renderInput.push({ id, image_id: imageId, owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
-  // });
   // 一次整理好, render
   const renderInput = transformCoordinates(inference);
+  labels = renderInput;
   renderImageLabels(renderInput, renderTags = true, userId);
 };
 
@@ -651,15 +637,15 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
       stroke: tagColorMap[arr.tag],
       fill: "transparent"
     });
-    label.labelId = arr.id;
-    label.tag = arr.tag;
-    canvas.add(label);
-
-    // render label list table
     const labelId = arr.id;
     const labeler = arr.labeler;
     const tag = arr.tag;
 
+    label.labelId = labelId;
+    label.tag = tag;
+    canvas.add(label);
+
+    // render label list table
     if (userId === labeler) {
       // console.log("genLabelTable for api");
       genLabelTable(imgOwner, labeler, labelId, tag, "your", remove = true);
