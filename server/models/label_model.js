@@ -1,23 +1,37 @@
 const { pool } = require("./mysqlcon");
 
+const promiseQuery = (sql, bindings) => {
+  return new Promise((resolve, reject) => {
+    pool.query(sql, bindings, (err, result) => {
+      if (err) reject(err);
+      // console.log(result);
+      resolve(result);
+    });
+  });
+};
+
 const insertApiCoordinates = (imageId, localizedAnnotations) => {
   return new Promise((resolve, reject) => {
-    // console.log("model");
+    // console.log("model insertApiCoordinates");
 
-    const finalResult = [];
-    localizedAnnotations.forEach(obj => {
-      const vertices = obj.boundingPoly.normalizedVertices;
+    async function processlocalizedAnnotations (array) {
+      const finalResult = [];
+      for (const obj of array) {
+        // console.log(obj);
+        const vertices = obj.boundingPoly.normalizedVertices;
 
-      const bindings = [obj.mid, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
-      // console.log(bindings);
-      const sql = "INSERT INTO api_inference SET mid = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
-      pool.query(sql, bindings, (err, result) => {
-        if (err) reject(err);
-        // console.log(result);
-        finalResult.push(result);
-      });
-    });
-    resolve(finalResult);
+        const bindings = [obj.mid, obj.name, obj.score, vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y, vertices[3].x, vertices[3].y, imageId];
+        const sql = "INSERT INTO api_inference SET mid = ?, name = ?, score = ?, normalizedVertices_0 = point(?,?), normalizedVertices_1 = point(?,?), normalizedVertices_2 = point(?,?), normalizedVertices_3 = point(?,?), image_id = ?";
+        const result = await promiseQuery(sql, bindings);
+        // console.log(result.insertId);
+        finalResult.push(result.insertId);
+      }
+      return finalResult;
+    }
+    const apiInsertId = processlocalizedAnnotations(localizedAnnotations);
+
+    // console.log(apiInsertId);
+    resolve(apiInsertId);
   });
 };
 

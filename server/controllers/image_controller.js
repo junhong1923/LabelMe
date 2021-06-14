@@ -1,5 +1,6 @@
 const Image = require("../models/image_model");
 const { insertApiCoordinates, getLabelTags } = require("../models/label_model");
+// const Label = require("../models/label_model");
 const utils = require("../../util/util");
 
 const getImages = async (req, res) => {
@@ -15,9 +16,11 @@ const getImages = async (req, res) => {
     const tagsObj = {};
     imageTags.forEach(obj => {
       if (obj.image_id in tagsObj) {
-        tagsObj[obj.image_id].push(obj.tag);
+        if (!tagsObj[obj.image_id].includes(obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1))) {
+          tagsObj[obj.image_id].push(obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1));
+        }
       } else {
-        tagsObj[obj.image_id] = [obj.tag];
+        tagsObj[obj.image_id] = [obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1)];
       }
     });
     // console.log(tagsObj);
@@ -50,12 +53,16 @@ const saveOriginalImage = async (req, res) => {
     console.log(`Google api get ${localizedAnnotations.length} predictions.`);
     // 5/25 need to check the total capacity before insert images
     const imgResult = await Image.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-    console.log(imgResult);
+    // console.log(imgResult);
     const imageId = imgResult.imageId;
-    const apiResult = insertApiCoordinates(imageId, localizedAnnotations); // let it store to db async
+
+    const apiInsertId = await insertApiCoordinates(imageId, localizedAnnotations);
+    // console.log(apiInsertId); // 6/14 這樣才能知道insert的labelId，這要拿去給render canvas用的、以及日後刪除需要用...
+
+    localizedAnnotations.forEach((obj, idx) => { obj.id = apiInsertId[idx]; });
 
     if (imgResult.result.changedRows === 1) {
-      res.status(200).json({ userId, imgSize, imgPath, inference: localizedAnnotations });
+      res.status(200).json({ userId, imgSize, imgPath, imageId, inference: localizedAnnotations });
     }
   } catch (err) {
     console.log("inside controller saveImg:");
