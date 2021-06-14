@@ -73,6 +73,17 @@ const getLabelTags = () => {
   });
 };
 
+const getLabelCount = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT COUNT(*) FROM label_result WHERE user_id = ?";
+    pool.query(sql, userId, (err, result) => {
+      if (err) reject(err);
+      console.log(result);
+      resolve(result[0]["COUNT(*)"]);
+    });
+  });
+};
+
 const queryLabels = (imageId) => {
   return new Promise((resolve, reject) => {
     // const sql = "SELECT * FROM (SELECT a.id, a.image_id, a.type, b.status, a.tag, coordinates_xy, coordinates_wh, a.user_id FROM label_result as a LEFT JOIN original_image as b ON a.image_id = b.image_id) as c WHERE c.image_id = ?";
@@ -134,6 +145,7 @@ module.exports = {
   insertApiCoordinates,
   insertCoordinates,
   getLabelTags,
+  getLabelCount,
   queryLabels,
   queryApiInference,
   deleteApiLabel,

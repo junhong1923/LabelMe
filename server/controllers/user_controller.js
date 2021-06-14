@@ -1,6 +1,7 @@
 require("dotenv").config();
 const validator = require("validator");
 const User = require("../models/user_model");
+const { getLabelCount } = require("../models/label_model");
 
 const signUp = async (req, res) => {
   let { name } = req.body;
@@ -102,14 +103,24 @@ const signIn = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
+  // let usage;
+  // if (req.user.capacity < 1024) {
+  //   usage = `${req.user.capacity}KB`;
+  // } else if (req.user.capacity > 1024 * 1024) {
+  //   usage =
+  // }
+  console.log(req.user);
+  const labelCount = await getLabelCount(req.user.id);
+
   res.status(200).json({
     data: {
-      provider: req.user.provider,
+      // provider: req.user.provider,
       name: req.user.name,
       email: req.user.email,
-      picture: req.user.picture,
+      // picture: req.user.picture,
       imgQty: req.user.img_qty,
-      capacity: req.user.capacity
+      labelCount: labelCount,
+      capacity: req.user.capacity // KB
     }
   });
 };
