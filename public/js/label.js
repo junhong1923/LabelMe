@@ -388,6 +388,32 @@ window.onload = (e) => {
         imgForm.onsubmit = submitted.bind(imgForm);
       }
     });
+
+  const profile = document.querySelector("#profile");
+  profile.addEventListener("click", (e) => {
+    console.log(e.target);
+    fetch("/api/1.0/user/profile", {
+      method: "GET",
+      headers: { authorization: `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (res.status === 200) { return res.json(); }
+      })
+      .then((res) => {
+        console.log(res);
+        Swal.fire({
+          title: "User Profile",
+          html: `
+              <div class="profile">
+                <div>Hi, ${res.data.name}</div>
+                <div>Email: ${res.data.email}</div>
+                <div>Upload Imaegs: ${res.data.imgQty}</div>
+                <div>Storage Used: ${(res.data.capacity / 2000000).toFixed(2)} of 2 GB</div>
+              </div>
+            `
+        });
+      });
+  });
 };
 
 const submitted = (event) => {

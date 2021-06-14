@@ -24,7 +24,7 @@ const getImageData = (type, userId, status) => {
       } else { console.log(res.status); }
     })
     .then((res) => {
-      console.log(res);
+      // console.log(res);
       if (!res.error) {
         imageRow.innerHTML = "";
 
@@ -138,11 +138,11 @@ window.onload = (e) => {
   // get initial public image data
   getImageData("public");
 
+  const token = localStorage.getItem("token");
   // listen to filterTab, and get different image data
   filterTab.addEventListener("click", (e) => {
     const filterType = e.target.textContent.toLowerCase();
     if (filterType === "private") {
-      const token = localStorage.getItem("token");
       fetch("/api/1.0/user/auth", {
         method: "POST",
         headers: { authorization: `Bearer ${token}` }
@@ -195,6 +195,32 @@ window.onload = (e) => {
         }
       }
     }
+  });
+
+  const profile = document.querySelector("#profile");
+  profile.addEventListener("click", (e) => {
+    console.log(e.target);
+    fetch("/api/1.0/user/profile", {
+      method: "GET",
+      headers: { authorization: `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (res.status === 200) { return res.json(); }
+      })
+      .then((res) => {
+        console.log(res);
+        Swal.fire({
+          title: "User Profile",
+          html: `
+            <div class="profile">
+              <div>Hi, ${res.data.name}</div>
+              <div>Email: ${res.data.email}</div>
+              <div>Upload Imaegs: ${res.data.imgQty}</div>
+              <div>Storage Used: ${(res.data.capacity / 2000000).toFixed(2)} of 2 GB</div>
+            </div>
+          `
+        });
+      });
   });
 };
 
