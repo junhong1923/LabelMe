@@ -15,9 +15,7 @@ const getImageData = (type, userId, status) => {
   } else {
     url = `/api/1.0/images/${type}?status=${status}`;
   }
-  fetch(url, {
-    method: "GET"
-  })
+  fetch(url, { method: "GET" })
     .then((res) => {
       if (res.status === 200) {
         return res.json();
@@ -96,7 +94,8 @@ const getImageData = (type, userId, status) => {
             dropTarget.addEventListener("dragenter", cancelDefault);
             dropTarget.addEventListener("dragover", cancelDefault);
           });
-        } else {
+        } else if (type === "public") {
+          // render public images
           res.forEach(obj => {
             const imgHref = `html/label.html?id=${obj.image_id}&src=${obj.image_path}`;
             const imgPath = obj.image_path;
@@ -112,20 +111,6 @@ const getImageData = (type, userId, status) => {
                 </div>
                 `;
             imageRow.innerHTML += html;
-
-            // using css only
-            // const html = `
-            // <div class="picture">
-            //     <p>Tag: ${obj.tag}</p>
-            //     <div class="imageContainer">
-            //         <a class="image" href=${imgHref}>
-            //             <img src=${imgPath} alt="">
-            //         </a>
-            //     </div>
-            //     <p>Download Image: <a target="_blank" href=${imgPath}>Click Here</a></p>
-            // </div>
-            // `;
-            // imagesBox.innerHTML += html;
           });
         }
       } else {
@@ -199,7 +184,7 @@ window.onload = (e) => {
 
   const profile = document.querySelector("#profile");
   profile.addEventListener("click", (e) => {
-    console.log(e.target);
+    // console.log(e.target);
     fetch("/api/1.0/user/profile", {
       method: "GET",
       headers: { authorization: `Bearer ${token}` }
@@ -208,15 +193,18 @@ window.onload = (e) => {
         if (res.status === 200) { return res.json(); }
       })
       .then((res) => {
+        const date = new Date();
+        const monthName = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep", "Oct.", "Nov.", "Dec."];
         console.log(res);
         Swal.fire({
           title: "User Profile",
           html: `
             <div class="profile">
               <div>Hi, ${res.data.name}</div>
-              <div>Email: ${res.data.email}</div>
-              <div>Upload Imaegs: ${res.data.imgQty}</div>
-              <div>Storage Used: ${(res.data.capacity / 2000000).toFixed(2)} of 2 GB</div>
+              <div><img src="../images/icons/email.svg">: ${res.data.email}</div>
+              <div><img src="../images/icons/file_upload.svg">: ${res.data.imgQty} images</div>
+              <div><img src="../images/icons/equalizer.svg">: ${res.data.labelCount} times/${monthName[date.getMonth()]}</div>
+              <div><img src="../images/icons/cloud_done.svg">: ${(res.data.capacity / 2000000).toFixed(2)} of 2 GB used</div>
             </div>
           `
         });

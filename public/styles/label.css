@@ -19,6 +19,14 @@ header #logo:hover {
   color: black;
 }
 
+.profile {
+  border-top: 1px solid slategray;
+  font-size: 20px;
+  text-align: left;
+  padding-top: 7px;
+  padding-left: 8rem;
+}
+
 .function {
   margin-top: 10px;
   display: flex;
