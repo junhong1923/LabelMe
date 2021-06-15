@@ -53,11 +53,11 @@ const saveCoordinates = async (req, res) => {
       console.log("condition 4");
       res.status(200).send({ msg: "Nothing new to submit" });
     } else {
-      // const result = await Label.insertCoordinates(userId, checkedLabels);
-      // console.log(result.msg);
-      // if (result.msg) {
-      //   res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
-      // }
+      const result = await Label.insertCoordinates(userId, checkedLabels);
+      console.log(result.msg);
+      if (result.msg) {
+        res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+      }
     }
   } catch (err) {
     console.log(err);
