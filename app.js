@@ -1,4 +1,5 @@
 const path = require("path");
+const multer = require("multer");
 require("dotenv").config();
 const port = process.env.PORT;
 
@@ -36,6 +37,11 @@ app.use((req, res) => {
 // Error handling
 app.use((err, req, res, next) => {
   console.log(err.stack);
+
+  if (err instanceof multer.MulterError) {
+    return res.status(418).send(err.code);
+  }
+
   res.status(500).send("Error handling: Internal Server Error");
 });
 

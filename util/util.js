@@ -13,12 +13,11 @@ const jwt = require("jsonwebtoken");
 const User = require("../server/models/user_model");
 
 const upload = multer({
-  limit: { fileSize: 1000000 },
+  limits: { fileSize: 1024 * 1024 * 2 },
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
       const userId = req.user.id;
       const imagePath = path.join(__dirname, `../public/assets/${userId}`);
-      console.log(imagePath);
       if (!fs.existsSync(imagePath)) {
         fs.mkdirSync(imagePath);
       }
@@ -37,7 +36,7 @@ const upload = multer({
 });
 
 const uploadS3 = multer({
-  limit: { fileSize: 1000000 }, // limit uploaded file size within 1mb = 1000000 bytes
+  limits: { fileSize: 1024 * 1024 * 2 }, // limit uploaded file size within 2mb = 2000000 bytes
   storage: multerS3({
     s3: s3,
     bucket: process.env.S3_BUCKET,
@@ -50,7 +49,7 @@ const uploadS3 = multer({
       const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
       const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
       const timeStr = `${year}-${month}-${day}`;
-      const savePath = `/raw-images/${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
+      const savePath = `raw-images/${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
       cb(null, savePath);
     }
   })
