@@ -24,10 +24,6 @@ app.use("/api/" + process.env.API_VERSION,
   ]
 );
 
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "./public/html/canvas.html"));
-// });
-
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "./public/html/index.html"));
 });
