@@ -1,6 +1,7 @@
 require("dotenv").config();
 const validator = require("validator");
 const User = require("../models/user_model");
+const { getLabelCount } = require("../models/label_model");
 
 const signUp = async (req, res) => {
   let { name } = req.body;
@@ -32,14 +33,14 @@ const signUp = async (req, res) => {
 
   res.status(200).json({
     data: {
-      access_token: result.access_token,
-      access_expired: result.access_expired,
+      access_token: user.access_token,
+      access_expired: user.access_expired,
       user: {
-        id: result.id,
-        provider: result.provider,
-        name: result.name,
-        email: result.email,
-        picture: result.picture
+        id: user.id,
+        provider: user.provider,
+        name: user.name,
+        email: user.email,
+        picture: user.picture
       }
     }
   });
@@ -102,18 +103,35 @@ const signIn = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
+  // let usage;
+  // if (req.user.capacity < 1024) {
+  //   usage = `${req.user.capacity}KB`;
+  // } else if (req.user.capacity > 1024 * 1024) {
+  //   usage =
+  // }
+  console.log(req.user);
+  const labelCount = await getLabelCount(req.user.id);
+
   res.status(200).json({
     data: {
-      provider: req.user.provider,
+      // provider: req.user.provider,
       name: req.user.name,
       email: req.user.email,
-      picture: req.user.picture
+      // picture: req.user.picture,
+      imgQty: req.user.img_qty,
+      labelCount: labelCount,
+      capacity: req.user.capacity // KB
     }
   });
+};
+
+const checkAuth = (req, res) => {
+  res.json(req.user);
 };
 
 module.exports = {
   signUp,
   signIn,
-  getUserProfile
+  getUserProfile,
+  checkAuth
 };

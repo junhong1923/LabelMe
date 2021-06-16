@@ -50,7 +50,7 @@ const uploadS3 = multer({
       const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
       const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
       const timeStr = `${year}-${month}-${day}`;
-      const savePath = `${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
+      const savePath = `/raw-images/${req.user.id}/${timeStr}_${file.originalname}`; // The name of the file
       cb(null, savePath);
     }
   })
@@ -70,13 +70,14 @@ const authentication = (roleId) => {
     // Returns the specified HTTP request header field
     let accessToken = req.get("Authorization");
     if (!accessToken) {
-      res.status(401).send({ error: "Unauthorized: no token" });
+      res.status(401).send({ error: "Unauthorized: no token, please Login." });
       return;
     }
 
     accessToken = accessToken.replace("Bearer ", "");
     if (accessToken === "null") {
-      res.status(401).send({ error: "Unauthorized: no token" });
+      res.status(401).send({ error: "Unauthorized: Bearer is null, please Login." });
+      return;
     }
 
     try {
@@ -84,23 +85,53 @@ const authentication = (roleId) => {
       req.user = user;
       const userData = await User.getUserData(user.email);
       if (userData) {
+        // console.log(userData);
         req.user.id = userData.id;
         // req.user.role_id = userData.role_id;
         req.user.picture = userData.picture;
+        req.user.img_qty = userData.img_qty;
+        req.user.capacity = userData.capacity;
         next();
       } else {
         res.status(403).send({ error: "Cannot find your email account." });
       }
     } catch (error) {
-      // console.log(error);
-      res.status(403).send({ error: "Forbidden: TokenExpiredError" });
+      console.log(error);
+      res.status(403).send({ error });
     }
   };
+};
+
+const writePredictions = (objects, filename) => {
+  const data = JSON.stringify(objects);
+
+  fs.writeFile(filename, data, (err) => {
+    if (err) console.log(err);
+  });
+};
+
+const getS3BufferData = (multerData) => {
+  return new Promise((resolve, reject) => {
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Key: multerData.key
+    };
+
+    s3.getObject(params, (err, data) => {
+      if (err) {
+        console.log(err);
+        reject(err);
+      }
+      resolve(data.Body);
+    });
+  });
 };
 
 module.exports = {
   upload,
   uploadS3,
+  writePredictions,
+  getS3BufferData,
   wrapAsync,
   authentication
 };

@@ -8,7 +8,8 @@ const {
 const {
   signUp,
   signIn,
-  getUserProfile
+  getUserProfile,
+  checkAuth
 } = require("../controllers/user_controller");
 
 router.route("/user/signup")
@@ -19,5 +20,8 @@ router.route("/user/signin")
 
 router.route("/user/profile")
   .get(authentication(), wrapAsync(getUserProfile));
+
+router.route("/user/auth")
+  .post(authentication(), checkAuth);
 
 module.exports = router;

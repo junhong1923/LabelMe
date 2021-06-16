@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabelMe</title>
+    <link rel=icon href="../images/favicon.png" sizes="16x16" type="image/png">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="../styles/label.css">
+</head>
+
+<body>
+    <header class="p-2 mb-3 border-bottom sticky-top">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                <a href="/" class="navbar-brand bi">
+                  <img src="../images/favicon.png" alt="logo" style="width:50px; height:45px">
+                </a>
+                <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                    <li><a href="/" class="nav-link px-2 link-light" id="logo">ShareLabel</a></li>
+                    <!-- <li><a class="nav-link px-2 link-light">About</a></li> -->
+                </ul>
+                <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
+                    <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+                </form>
+
+                <div class="–dropdown text-end">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser1"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="../images/member.png" alt="mdo" width="32" height="32" class="rounded-circle">
+                    </a>
+                    <ul class="dropdown-menu text-small" aria-labelledby="dropdownUser1">
+                        <li><a class="dropdown-item" id="profile">Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" id="signout">Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="accordion" id="accordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                Instructions
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordion">
+              <div class="accordion-body">
+                <p>1. Choose your image and then upload it.</p>
+                <p>2. Use bounding box tools to label!</p>
+                <p>3. Make sure to submit button to save labels on the canvas.</p>
+                <p>4. Download the labeled json!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <hr> -->
+        <div class="container function">
+            <!-- <div>
+                <form class="form-img" enctype="multipart/form-data" name="uploadImage">
+                  <input id="myImg" type="file" name="OriImage" class="btn btn-secondary col-sm-3 active" accept="image/*" />
+                  <input id="share" name="share" type="button" value="private">
+                  <input type='submit' , value='上傳照片' , style='margin-left:10px;'>
+                </form>
+            </div>
+            <hr> -->
+            <!-- <input type="file" onchange="loadFile(this);" class="btn btn-secondary active" /> -->
+
+            <div class="tool">
+                <div class="btn-group tool-bar" role="group" aria-label="Button group with nested dropdown">
+                    <button id="bounding" class="btn" onclick="toggleMode(this, modes.bounding)"><img src="../images/icons/black-24dp-bounding/2x/outline_highlight_alt_black_24dp.png" alt="BoundingBox" width="30px" height="30px"></button>
+                    <button id="pan" class="btn" onclick="toggleMode(this, modes.pan)"><img src="../images/icons/move.svg" alt="TogglePan" width="30px" height="30px"></button>
+    
+                    <!-- <div class="btn-group" role="group">
+                        <button id="btnGroupDrop1" type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Annotations
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                            <li><a id="line" onclick="toggleMode(this, modes.drawing)" class="dropdown-item flex-fill">Line</a></li>
+                            <li><a id="bounding" onclick="toggleMode(this, modes.bounding)" class="dropdown-item flex-fill"><img src="../images/icons/bounding-box.png" alt="BoundingBox" width="30px" height="30px"></a></li>
+                            <li><a id="poly" onclick="toggleMode(this, modes.poly)" class="dropdown-item flex-fill">Polygon</a></li>
+                        </ul>
+                    </div> -->
+                </div>
+    
+                <div>
+                    <button id="undo" class="btn"><img src="../images/icons/undo/2x/outline_undo_black_24dp.png" alt="undo" width="30px" height="30px"></button>
+                    <button id="redo" class="btn"><img src="../images/icons/redo/2x/outline_redo_black_24dp.png" alt="redo" width="30px" height="30px"></button>
+    
+                    <!-- 暫時移除clear跟restore -->
+                    <!-- <button onclick="clearCanvas(canvas);" class="btn btn-secondary">Clear Label</button> clearPad(); -->
+                    <!-- <button onclick="restoreCanvas(canvas, svgState);" class="btn btn-secondary">Restore</button> -->
+                    <!-- <button onclick="commitLabel(canvas)" class="btn btn-primary">Submit</button> -->
+                    <!-- <input type="submit" value="Download labeled image" onclick="saveFile();"></input>
+                    <a id="download"></a> -->
+                </div>
+    
+    
+                <div class="btn-group">
+                    <button id="zoomInBtn" class="btn"><img src="../images/icons/zoom_in_black_24dp.svg" alt="zoomIn" width="30px" height="30px"></button>
+                    <button id="zoomOutBtn" class="btn"><img src="../images/icons/zoom_out_black_24dp.svg" alt="zoomOut" width="30px" height="30px"></button>
+                    <!-- <button id="zoomFitBtn" class="btn"><img src="../images/icons/fitScreen/1x/outline_fit_screen_black_24dp.png" alt="zoomFit" width="30px" height="30px"></button> -->
+                    <label for="zoom">目前縮放：</label>
+                    <input type="text" readonly value="100%" id="zoom">
+                </div>
+
+            </div>
+
+            <div class="upload-group">
+                <form class="form-img" enctype="multipart/form-data" name="uploadImage">
+                  <input id="myImg" type="file" name="OriImage" class="btn btn-light" accept="image/*" />
+                  <input id="share" name="share" type="button" value="private">
+                  <input type='submit' class="btn btn-primary upload-btn" value='Upload image' style='margin-left:10px;'>
+                </form>
+            </div>
+
+            
+            
+            <!-- <hr> -->
+            <!-- <div class="form-check form-switch">
+                <input class="form-check-input btn-lg" type="checkbox" id="flexSwitchCheckChecked" checked disabled>
+                <label class="form-check-label" for="flexSwitchCheckChecked">Show Label</label>
+            </div> -->
+        </div>
+        <hr>
+    </div>
+        <div class="canvas">
+            <canvas id="canvas" width="900" height="700"></canvas>
+            <div class="board table-responsive">
+
+              
+
+              <div class="label-pane">
+
+                <div class="label-pane-title">
+                  <div class="title">Label Results</div>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input btn-lg" type="checkbox" id="flexSwitchCheckChecked" checked disabled>
+                    <label class="form-check-label" for="flexSwitchCheckChecked"></label>
+                  </div>
+                </div>
+
+                <div class="label-pane-content">
+
+                  <ul class="nav nav-tabs">
+                    
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags" type="button" role="tab" aria-controls="tags" aria-selected="true">Tags</button>
+                    </li>
+
+                    <!-- <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab" aria-controls="list" aria-selected="false">List</button>
+                    </li> -->
+
+                  </ul>
+
+                  <div class="tab-content">
+                    
+                    <div class="tab-pane fade show active" id="tags" role="tabpanel" aria-labelledby="tags-tab">
+
+                      <button class="btn btn-outline-secondary add-btn">+ Add tag</button>
+
+                    </div>
+
+                    <!-- <div class="tab-pane fade" id="list" role="tabpanel" aria-labelledby="list-tab">123</div> -->
+                    
+                  </div>
+                </div>
+
+
+              </div>
+
+              <!-- <div class="label-list">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab" aria-controls="tags" aria-selected="true">History</button>
+                  </li>
+                </ul>
+                <div class="tab-content">
+                  <div class="tab-pane fade show active" id="list" role="tabpanel" aria-labelledby="list-tab">
+                    <div class="list-title">
+                      
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+
+
+              <div class="table-responsive">
+                <table class="table table-sm table-hover caption-top table-bordered">
+                  <caption>Lists of labels</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Tag</th>
+                      <th scope="col">Labeler</th>
+                      <th scope="col">Hide</th>
+                      <th scope="col">Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                        
+                  </tbody>
+                </table>
+              </div>
+              
+
+              <div class="result">
+                  <button onclick="commitLabel(canvas)" class="btn btn-primary">Submit</button>
+    
+                  <input type="submit" class="btn btn-primary" value="Download labeled json" onclick="saveFile();"></input>
+                  <a id="download"></a>
+              </div>
+
+            </div>
+        </div>
+
+        <div>
+
+        </div>
+
+    <!-- </div> -->
+    <footer class="footer py-3">
+      <div class="container d-flex justify-content-around">
+        <p>
+          <a href="#" class="link-light">Back to top</a>
+        </p>
+        <p>Contact: m81923@gmail.com</p>
+        <p>© 2021. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <script src="../js/fabric.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/label.js"></script>
+</body>
+
+</html>
