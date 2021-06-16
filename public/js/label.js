@@ -429,6 +429,7 @@ const submitted = (event) => {
   xhr.open("POST", "/api/1.0/image/upload");
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.onreadystatechange = () => {
+    // console.log(xhr);
     if (xhr.readyState === 4) {
       console.log(JSON.parse(xhr.response));
       if (JSON.parse(xhr.response).inference) {
@@ -446,7 +447,12 @@ const submitted = (event) => {
           renderApiLabels(inference);
         } else console.log("vision api error...");
       }
-    } // else console.log(xhr.readyState, xhr.response);
+    } else if (xhr.responseText === "LIMIT_FILE_SIZE") {
+      // console.log(xhr.readyState, xhr.response);
+      Swal.fire("Sorry, your image size is over limited 2MB.");
+    } else if (xhr.responseText === "Out of 2GB usage.") {
+      Swal.fire("Sorry, " + xhr.responseText);
+    }
   };
   xhr.send(formData);
 };
