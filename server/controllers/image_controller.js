@@ -1,6 +1,6 @@
 const Image = require("../models/image_model");
 const { insertApiCoordinates, getLabelTags } = require("../models/label_model");
-// const Label = require("../models/label_model");
+const { getUserCapacity } = require("../models/user_model");
 const utils = require("../../util/util");
 
 const getImages = async (req, res) => {
@@ -11,28 +11,25 @@ const getImages = async (req, res) => {
 
   try {
     const images = await Image.getImages(type, userId, status);
-    const imageTags = await getLabelTags();
+    const labelTags = await getLabelTags();
 
     const tagsObj = {};
-    imageTags.forEach(obj => {
-      if (obj.image_id in tagsObj) {
-        if (!tagsObj[obj.image_id].includes(obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1))) {
-          tagsObj[obj.image_id].push(obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1));
+    labelTags.forEach(labelTag => {
+      if (labelTag.image_id in tagsObj) {
+        if (!tagsObj[labelTag.image_id].includes(stringCapitalized(labelTag.tag))) {
+          tagsObj[labelTag.image_id].push(stringCapitalized(labelTag.tag));
         }
       } else {
-        tagsObj[obj.image_id] = [obj.tag.charAt(0).toUpperCase() + obj.tag.toLowerCase().slice(1)];
+        tagsObj[labelTag.image_id] = [stringCapitalized(labelTag.tag)];
       }
     });
-    // console.log(tagsObj);
 
-    images.forEach(obj => {
-      if (obj.image_id.toString() in tagsObj) {
-        // console.log(obj.image_id);
-        // console.log(tagsObj[obj.image_id.toString()]);
-        obj.tag = tagsObj[obj.image_id.toString()];
+    images.forEach(image => {
+      if (image.image_id.toString() in tagsObj) {
+        image.tag = tagsObj[image.image_id.toString()];
       }
     });
-    // console.log(images);
+
     res.status(200).json(images);
   } catch (err) {
     console.log(err);
@@ -42,33 +39,43 @@ const getImages = async (req, res) => {
 
 const saveOriginalImage = async (req, res) => {
   const userId = req.user.id;
-  const imgSize = (req.file.size / 1024).toFixed(2); // 原始單位：bytes，先換算成kb
+  const imgSize = (req.file.size / 1024).toFixed(2); // size unit：bytes => kb
   const imgPath = req.file.location;
   const imgFileName = req.file.originalname;
 
-  console.log("label controller");
-  // console.log(req.file);
   try {
     const localizedAnnotations = await localizeObjects(req);
-    console.log(`Google api get ${localizedAnnotations.length} predictions.`);
-    // 5/25 need to check the total capacity before insert images
-    const imgResult = await Image.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-    // console.log(imgResult);
-    const imageId = imgResult.imageId;
 
-    const apiInsertId = await insertApiCoordinates(imageId, localizedAnnotations);
-    // console.log(apiInsertId); // 6/14 這樣才能知道insert的labelId，這要拿去給render canvas用的、以及日後刪除需要用...
+    const insertImage = await Image.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
+    console.log(insertImage);
 
-    localizedAnnotations.forEach((obj, idx) => { obj.id = apiInsertId[idx]; });
+    const imageId = insertImage.imageId;
+    const insertApiIds = await insertApiCoordinates(imageId, localizedAnnotations);
 
-    if (imgResult.result.changedRows === 1) {
+    localizedAnnotations.forEach((annotation, idx) => { annotation.id = insertApiIds[idx]; });
+
+    if (insertImage.result.changedRows === 1) {
       res.status(200).json({ userId, imgSize, imgPath, imageId, inference: localizedAnnotations });
     }
+    res.send({ msg: "Image is not insert as expected..." });
   } catch (err) {
-    console.log("inside controller saveImg:");
+    console.log("catch error in controller: saveImg:");
     console.log(err.stack);
     res.status(500).send("Internal Server Error...");
   }
+};
+
+const checkUserCapacity = () => {
+  return async function (req, res, next) {
+    const userId = req.user.id;
+    const usage = await getUserCapacity(userId);
+    const usageLimit = 1024 * 1024 * 2; // 2GB
+    if (usage > usageLimit) {
+      res.status(423).send("Out of 2GB usage.");
+      return;
+    }
+    next();
+  };
 };
 
 async function localizeObjects (req) {
@@ -86,20 +93,22 @@ async function localizeObjects (req) {
     };
 
     const [result] = await client.objectLocalization(request);
-    // console.log(result);
-    // 先不要寫檔，怕速度太慢
-    // const filePath = path.join(__dirname, `../../label_json/api_inference/prediction_${req.file.originalname.split(".")[0]}.json`);
-    // console.log(filePath);
-    // utils.writePredictions(result, filePath);
-
     const objects = result.localizedObjectAnnotations;
 
     return objects;
   } catch (err) {
-    console.log("inside func localizeObjects:");
+    console.log("catch error in func localizeObjects:");
     console.log(err.stack);
     return err;
   }
 };
 
-module.exports = { getImages, saveOriginalImage };
+function stringCapitalized (string) {
+  return string.charAt(0).toUpperCase() + string.toLowerCase().slice(1);
+};
+
+module.exports = {
+  getImages,
+  checkImageMiddleware: checkUserCapacity,
+  saveOriginalImage
+};
