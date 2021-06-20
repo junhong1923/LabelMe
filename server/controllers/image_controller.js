@@ -7,7 +7,6 @@ const getImages = async (req, res) => {
   const type = req.params.type;
   const status = req.query.status;
   const userId = req.query.userid;
-  console.log({ type, status, userId });
 
   try {
     const images = await Image.getImages(type, userId, status);
@@ -47,7 +46,6 @@ const saveOriginalImage = async (req, res) => {
     const localizedAnnotations = await localizeObjects(req);
 
     const insertImage = await Image.insertOriginalImage(userId, imgSize, imgFileName, imgPath);
-    console.log(insertImage);
 
     const imageId = insertImage.imageId;
     const insertApiIds = await insertApiCoordinates(imageId, localizedAnnotations);
@@ -56,8 +54,9 @@ const saveOriginalImage = async (req, res) => {
 
     if (insertImage.result.changedRows === 1) {
       res.status(200).json({ userId, imgSize, imgPath, imageId, inference: localizedAnnotations });
+    } else {
+      res.send({ msg: "Image is not insert as expected..." });
     }
-    res.send({ msg: "Image is not insert as expected..." });
   } catch (err) {
     console.log("catch error in controller: saveImg:");
     console.log(err.stack);
