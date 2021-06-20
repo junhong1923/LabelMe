@@ -10,6 +10,16 @@ const pool = mysql.createPool({
   multipleStatements: true
 });
 
+const promiseQuery = (sql, bindings) => {
+  return new Promise((resolve, reject) => {
+    pool.query(sql, bindings, (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
-  pool
+  pool,
+  promiseQuery
 };
