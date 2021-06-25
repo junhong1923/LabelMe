@@ -36,7 +36,7 @@ describe("Label", () => {
   });
 
   // compareLabelsPair func: compare API inference labels and return checkedLabels
-  describe("compareLabelsPair", () => {
+  describe("compareLabelsPair()", () => {
     it("new upload image", () => {
       const data = {
         newLabels: [
