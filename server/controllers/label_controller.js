@@ -1,15 +1,15 @@
 const Label = require("../models/label_model");
 const { getImageOwner } = require("../models/image_model");
 
-function compareLabelsPair (originalLabels, newLabels) {
-  function compareCoordinates (newLabel, originalLabel, newScale, originalScale = { x: 1, y: 1 }) {
-    if (newLabel.x * newScale.X === originalLabel.coordinates_xy.x.toFixed(2) * originalScale.x && newLabel.y * newScale.Y === originalLabel.coordinates_xy.y.toFixed(2) * originalScale.y && newLabel.width * newScale.X === originalLabel.coordinates_wh.x.toFixed(2) * originalScale.x && newLabel.height * newScale.Y === originalLabel.coordinates_wh.y.toFixed(2) * originalScale.y) {
-      return true;
-    } else {
-      return false;
-    }
+function compareCoordinates (newLabel, originalLabel, newScale = { X: 1, Y: 1 }, originalScale = { x: 1, y: 1 }) {
+  if (newLabel.x * newScale.X === originalLabel.coordinates_xy.x.toFixed(2) * originalScale.x && newLabel.y * newScale.Y === originalLabel.coordinates_xy.y.toFixed(2) * originalScale.y && newLabel.width * newScale.X === originalLabel.coordinates_wh.x.toFixed(2) * originalScale.x && newLabel.height * newScale.Y === originalLabel.coordinates_wh.y.toFixed(2) * originalScale.y) {
+    return true;
+  } else {
+    return false;
   }
+}
 
+function compareLabelsPair (originalLabels, newLabels) {
   const checkedLabels = [];
   newLabels.forEach(newLabel => {
     if (newLabel.labelId.toString().includes("fresh")) {
@@ -118,7 +118,7 @@ const deleteLabel = async (req, res) => {
     }
 
     if (deleteResult.changedRows === 1) {
-      res.send({ msg: `${labelId} has been deleted...` });
+      res.status(204).send({ msg: `${labelId} has been deleted...` });
     }
   } catch (err) {
     console.log(err);
@@ -127,6 +127,8 @@ const deleteLabel = async (req, res) => {
 };
 
 module.exports = {
+  compareLabelsPair,
+  compareCoordinates,
   saveCoordinates,
   getLabels,
   deleteLabel
