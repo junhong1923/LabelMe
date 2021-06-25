@@ -1,0 +1,6 @@
+.DS_Store
+node_modules
+backup_sql/
+public/assets/
+public/js/canvas.js
+label_json/
