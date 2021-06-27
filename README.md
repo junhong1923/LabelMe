@@ -82,7 +82,7 @@ The idea of this project aims to **save time and labor cost** for someone who wo
 * Upload images in batch.
 
 ## Demonstration
-![demo gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature-upload.gif)
+![demo gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_1064_636.gif)
 ## Contact
 Jun Hong Lin  
 Email: m81923@gmail.com
