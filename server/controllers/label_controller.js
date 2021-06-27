@@ -43,7 +43,6 @@ const saveCoordinates = async (req, res) => {
   const originalLabels = req.body.before;
   const newLabels = req.body.after;
   let checkedLabels;
-  console.log(originalLabels === newLabels);
 
   try {
     if (originalLabels === newLabels) {
