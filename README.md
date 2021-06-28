@@ -82,7 +82,7 @@
 * Upload images in batch.
 
 ## Demonstration
-![demo gif](https://d1h417jtpfjyq.cloudfront.net/github-readme-images/feature_750_529.gif)
+![demo gif](https://d1h417jtpfjyq.cloudfront.net/github-readme-images/feature_749_529.gif)
 ## Contact
 Jun Hong Lin  
 Email: m81923@gmail.com
