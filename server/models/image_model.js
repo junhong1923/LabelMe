@@ -30,6 +30,15 @@ const getImages = (type, userId, status) => {
   });
 };
 
+const getImageOwner = (imageId) => {
+  return new Promise((resolve, reject) => {
+    pool.query("SELECT user_id as owner FROM original_image WHERE image_id = ?", [imageId], (err, result) => {
+      if (err) reject(err);
+      resolve(result[0]);
+    });
+  });
+};
+
 const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, conn) => {
@@ -46,7 +55,7 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
               reject(err);
             } else {
               const imageId = result.insertId;
-              // 2. insert imgSize(capacity累加) and update qty in user
+              // 2. insert imgSize(capacity / usage) and update qty in user
               conn.query("UPDATE user SET img_qty = img_qty + 1, capacity = capacity + ? WHERE id = ?", [imgSize, userId], (err, result) => {
                 if (err) {
                   conn.rollback(() => { conn.release(); });
@@ -72,17 +81,8 @@ const insertOriginalImage = (userId, imgSize, imgFileName, imgPath) => {
   });
 };
 
-const queryImageOwner = (imageId) => {
-  return new Promise((resolve, reject) => {
-    pool.query("SELECT user_id as owner FROM original_image WHERE image_id = ?", [imageId], (err, result) => {
-      if (err) reject(err);
-      resolve(result[0]);
-    });
-  });
-};
-
 module.exports = {
   getImages,
-  insertOriginalImage,
-  queryImageOwner
+  getImageOwner,
+  insertOriginalImage
 };

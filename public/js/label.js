@@ -127,7 +127,7 @@ const setPanEvents = (canvas) => {
           width: 0,
           height: 0,
           hasRotatingPoint: false,
-          selectable: false // 6/10 測試：看能否避免拉匡時 同時移動到鄰近的框
+          selectable: false
         });
         rect.labelId = "fresh_" + mouseClickId;
         rect.tag = selectedTag;
@@ -175,7 +175,7 @@ const setPanEvents = (canvas) => {
     canvas.renderAll();
     // state = canvas.toJSON();
 
-    if (canvasObjCount !== canvas.getObjects().length) {
+    if (canvasObjCount !== canvas.getObjects().length) { // bug: label in bounding then it would not add in table
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
       // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
@@ -192,8 +192,8 @@ const setPanEvents = (canvas) => {
         // console.log(imgOwner);
         // console.log(labels);
       }
-
-      genLabelTable(imgOwner, userId, latestObj.labelId, latestObj.tag, "your", remove = true);
+      // Labeler should be userName instead of userId
+      genLabelTable(imgOwner, userName, latestObj.labelId, latestObj.tag, "your", remove = true);
     }
   });
 };
@@ -429,6 +429,7 @@ const submitted = (event) => {
   xhr.open("POST", "/api/1.0/image/upload");
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.onreadystatechange = () => {
+    // console.log(xhr);
     if (xhr.readyState === 4) {
       console.log(JSON.parse(xhr.response));
       if (JSON.parse(xhr.response).inference) {
@@ -446,7 +447,12 @@ const submitted = (event) => {
           renderApiLabels(inference);
         } else console.log("vision api error...");
       }
-    } // else console.log(xhr.readyState, xhr.response);
+    } else if (xhr.responseText === "LIMIT_FILE_SIZE") {
+      // console.log(xhr.readyState, xhr.response);
+      Swal.fire("Sorry, your image size is over limited 2MB.");
+    } else if (xhr.responseText === "Out of 2GB usage.") {
+      Swal.fire("Sorry, " + xhr.responseText);
+    }
   };
   xhr.send(formData);
 };
@@ -462,7 +468,7 @@ const commitLabel = (canvas) => {
     const tag = canvas.getObjects()[idx].tag;
     const scale = { X: arr.scaleX, Y: arr.scaleY };
     coordinates.push({
-      imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width * scale.X, height: arr.height * scale.Y, scale
+      imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width, height: arr.height, scale
     });
   });
   console.log({ before: labels, after: coordinates });
@@ -533,11 +539,9 @@ const renderImageSrc = (url) => {
       selectable: false
     });
 
-    // set background, then would not be clear as other labels
     canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas));
     canvas.renderAll();
   });
-  // 3rd param: , { crossOrigin: "Anonymous" }
 };
 
 const getImageLabels = (userId, imageId) => {
@@ -640,6 +644,13 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
       stroke: tagColorMap[arr.tag],
       fill: "transparent"
     });
+
+    // ai inference doesn't have scale property, but user label need to add scale property
+    if (!arr.id.toString().includes("inference")) {
+      label.scaleX = arr.scale.x;
+      label.scaleY = arr.scale.y;
+    }
+
     const labelId = arr.id;
     const labeler = arr.labeler;
     const tag = arr.tag;
@@ -650,12 +661,11 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
 
     // render label list table
     if (userId === labeler) {
-      // console.log("genLabelTable for api");
-      genLabelTable(imgOwner, labeler, labelId, tag, "your", remove = true);
+      genLabelTable(imgOwner, arr.labeler_name, labelId, tag, "your", remove = true);
     } else if (labeler === "ai") {
       genLabelTable(imgOwner, labeler, labelId, tag, labeler, remove = true);
     } else {
-      genLabelTable(imgOwner, labeler, labelId, tag, `shared.${idx + 1}`);
+      genLabelTable(imgOwner, arr.labeler_name, labelId, tag, `shared.${idx + 1}`);
     }
   });
 };

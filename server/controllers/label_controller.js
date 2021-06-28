@@ -1,62 +1,65 @@
 const Label = require("../models/label_model");
-const { queryImageOwner } = require("../models/image_model");
+const { getImageOwner } = require("../models/image_model");
 
-const compareLabelsPair = (beforeLabels, afterLabels) => {
-  const checkedLabelsArr = [];
-  afterLabels.forEach(afterObj => {
-    if (afterObj.labelId.toString().includes("fresh")) {
-      checkedLabelsArr.push(afterObj);
+function compareCoordinates (newLabel, originalLabel, newScale = { X: 1, Y: 1 }, originalScale = { x: 1, y: 1 }) {
+  if (newLabel.x * newScale.X === originalLabel.coordinates_xy.x.toFixed(2) * originalScale.x && newLabel.y * newScale.Y === originalLabel.coordinates_xy.y.toFixed(2) * originalScale.y && newLabel.width * newScale.X === originalLabel.coordinates_wh.x.toFixed(2) * originalScale.x && newLabel.height * newScale.Y === originalLabel.coordinates_wh.y.toFixed(2) * originalScale.y) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function compareLabelsPair (originalLabels, newLabels) {
+  const checkedLabels = [];
+  newLabels.forEach(newLabel => {
+    if (newLabel.labelId.toString().includes("fresh")) {
+      checkedLabels.push(newLabel);
     } else {
-      // 如果是ai預測的，labelId會有inference_xx，則ai的前後座標自己比較，否則就不用再存一次
-      beforeLabels.forEach(beforeObj => {
-        if (afterObj.labelId === beforeObj.id) { // 如果before本來的圖片沒標注，labels = [{owner, msg}]，可能有err
-          if (afterObj.x === beforeObj.coordinates_xy.x && afterObj.y === beforeObj.coordinates_xy.y && afterObj.width === beforeObj.coordinates_wh.x && afterObj.height === beforeObj.coordinates_wh.y) {
-            console.log("remove duplicated coordinate");
+      originalLabels.forEach(originalLabel => {
+        if (newLabel.labelId === originalLabel.id) {
+          const newScale = newLabel.scale;
+
+          if (newLabel.labelId.toString().includes("inference")) {
+            if (compareCoordinates(newLabel, originalLabel, newScale) === false) {
+              checkedLabels.push(newLabel);
+            }
           } else {
-            checkedLabelsArr.push(afterObj);
+            const originalScale = originalLabel.scale;
+            if (compareCoordinates(newLabel, originalLabel, newScale, originalScale) === false) {
+              checkedLabels.push(newLabel);
+            }
           }
         }
       });
     }
   });
-  // console.log(checkedLabelsArr);
-  return checkedLabelsArr;
+
+  return checkedLabels;
 };
 
 const saveCoordinates = async (req, res) => {
   const userId = req.user.id;
-  // console.log(req.body);
 
   const originalLabels = req.body.before;
   const newLabels = req.body.after;
   let checkedLabels;
-  console.log(originalLabels === newLabels);
 
   try {
     if (originalLabels === newLabels) {
-      console.log("condition 0");
       res.status(200).send({ msg: "Nothing new to submit" });
       return;
-    } else if (originalLabels && originalLabels[0].id) { // condition: old img w labels
-      console.log("condition 1");
+    } else if (originalLabels && originalLabels[0].id) { // condition: old img w labels (add new label or label is modified)
       checkedLabels = compareLabelsPair(originalLabels, newLabels);
-    } else if (originalLabels && !originalLabels[0].id) { // condition: old img w/o labels
-      console.log("condition 2");
-      checkedLabels = newLabels;
     } else if (originalLabels === undefined) { // condition: new upload img
-      console.log("condition 3");
-      console.log(newLabels);
-      checkedLabels = newLabels; // 還是要加以判斷是否都只有ai預測的，不能把ai的座標再存一次
+      checkedLabels = newLabels;
     }
 
     if (checkedLabels.length === 0) {
-      console.log("condition 4");
       res.status(200).send({ msg: "Nothing new to submit" });
     } else {
-      const result = await Label.insertCoordinates(userId, checkedLabels);
-      console.log(result.msg);
-      if (result.msg) {
-        res.status(200).send({ labeler: userId, msg: result.msg, checkedLabels });
+      const insertResult = await Label.insertCoordinates(userId, checkedLabels);
+      if (insertResult.msg) {
+        res.status(200).send({ labeler: userId, msg: insertResult.msg, checkedLabels });
       }
     }
   } catch (err) {
@@ -66,35 +69,32 @@ const saveCoordinates = async (req, res) => {
 };
 
 const getLabels = async (req, res) => {
-  console.log("label controller");
-  console.log(req.query);
-  // const userId = req.query.user;
   const imgId = req.query.img;
 
   try {
-    const result = await Label.queryLabels(imgId);
-    let apiResult = await Label.queryApiInference(imgId);
+    const userLabels = await Label.getLabels(imgId);
+    let apiLabels = await Label.getApiInference(imgId);
 
-    if (apiResult.length > 0) {
-      apiResult = apiResult.map(obj => {
+    if (apiLabels.length > 0) {
+      apiLabels = apiLabels.map(apiLabel => {
         return {
-          id: obj.id,
-          name: obj.name,
-          score: obj.score,
+          id: apiLabel.id,
+          name: apiLabel.name,
+          score: apiLabel.score,
           boundingPoly: {
-            normalizedVertices: [obj.normalizedVertices_0, obj.normalizedVertices_1, obj.normalizedVertices_2, obj.normalizedVertices_3]
+            normalizedVertices: [apiLabel.normalizedVertices_0, apiLabel.normalizedVertices_1, apiLabel.normalizedVertices_2, apiLabel.normalizedVertices_3]
           }
         };
       });
     }
-    // console.log(apiResult);
 
-    if (result.length > 0 || apiResult.length > 0) {
-      res.status(200).send({ userLabel: result, apiLabel: apiResult });
+    if (userLabels.length > 0 || apiLabels.length > 0) {
+      res.status(200).send({ userLabel: userLabels, apiLabel: apiLabels });
+      return;
     } else {
-      // result = []
-      const imgOwner = await queryImageOwner(imgId);
+      const imgOwner = await getImageOwner(imgId);
       res.status(200).send([{ owner: imgOwner.owner, msg: "Label not found" }]);
+      return;
     }
   } catch (err) {
     console.log(err);
@@ -103,7 +103,6 @@ const getLabels = async (req, res) => {
 };
 
 const deleteLabel = async (req, res) => {
-  console.log("controller deleteLabel");
   const labelId = req.params.labelId;
 
   let deleteResult;
@@ -118,8 +117,7 @@ const deleteLabel = async (req, res) => {
     }
 
     if (deleteResult.changedRows === 1) {
-      console.log(`${labelId} has been deleted...`);
-      res.send({ msg: `${labelId} has been deleted...` });
+      res.status(204).send({ msg: `${labelId} has been deleted...` });
     }
   } catch (err) {
     console.log(err);
@@ -128,6 +126,8 @@ const deleteLabel = async (req, res) => {
 };
 
 module.exports = {
+  compareLabelsPair,
+  compareCoordinates,
   saveCoordinates,
   getLabels,
   deleteLabel

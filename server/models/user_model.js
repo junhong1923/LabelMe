@@ -127,9 +127,18 @@ const getUserData = (email) => {
   });
 };
 
+const getUserCapacity = (userId) => {
+  return new Promise((resolve, reject) => {
+    pool.query("SELECT capacity FROM user WHERE id = ?", userId, (err, result) => {
+      if (err) reject(err);
+      resolve(result[0].capacity);
+    });
+  });
+};
+
 module.exports = {
-  USER_ROLE,
   signUp,
   nativeSignIn,
-  getUserData
+  getUserData,
+  getUserCapacity
 };

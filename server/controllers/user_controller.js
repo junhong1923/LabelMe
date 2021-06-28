@@ -66,20 +66,17 @@ const signIn = async (req, res) => {
     case "native":
       result = await nativeSignIn(data.email, data.password);
       break;
-    // case "facebook":
-    //   result = await facebookSignIn(data.access_token);
-    //   break;
+
     default:
       // if this expression doesn't match any condition case
       result = { error: "Wrong Request", status: 400 };
   }
 
   if (result.error) {
-    // const statusCode = result.status ? result.status : 403;
     res.status(result.status).send({ error: result.error });
     return;
   }
-  console.log(result);
+
   const user = result.user;
   if (!user) {
     res.status(500).send({ error: "Database Query Error" });
@@ -103,26 +100,22 @@ const signIn = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
-  // let usage;
-  // if (req.user.capacity < 1024) {
-  //   usage = `${req.user.capacity}KB`;
-  // } else if (req.user.capacity > 1024 * 1024) {
-  //   usage =
-  // }
-  console.log(req.user);
-  const labelCount = await getLabelCount(req.user.id);
+  try {
+    const labelCount = await getLabelCount(req.user.id);
 
-  res.status(200).json({
-    data: {
-      // provider: req.user.provider,
-      name: req.user.name,
-      email: req.user.email,
-      // picture: req.user.picture,
-      imgQty: req.user.img_qty,
-      labelCount: labelCount,
-      capacity: req.user.capacity // KB
-    }
-  });
+    res.status(200).json({
+      data: {
+        name: req.user.name,
+        email: req.user.email,
+        imgQty: req.user.img_qty,
+        labelCount: labelCount,
+        capacity: req.user.capacity // KB
+      }
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error.");
+  }
 };
 
 const checkAuth = (req, res) => {
