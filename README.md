@@ -82,7 +82,12 @@
 * Upload images in batch.
 
 ## Demonstration
-![demo gif](https://d1h417jtpfjyq.cloudfront.net/github-readme-images/feature_749_529.gif)
+#### Get API labels
+![api gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_upload.gif)
+
+#### Modify labels
+![modify gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_modify.gif)
+
 ## Contact
 Jun Hong Lin  
 Email: m81923@gmail.com
