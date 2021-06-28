@@ -1,7 +1,7 @@
 # ShareLabel
-A **label-shared platform** for machine & deep learning users.  
-Users can upload images and **obtain labels** either by themselves or labels shared from others.  
-The idea of this project aims to **save time and labor cost** for someone who would like to annotate images. 
+* A **label-shared platform** for machine & deep learning users.  
+* Users can upload images and **obtain labels** either by themselves or labels shared from others.  
+* The idea of this project aims to **save time and labor cost** for someone who would like to annotate images. 
 
 ***Suggestion**: Image size within 900 * 700 would be better*
 
@@ -82,7 +82,12 @@ The idea of this project aims to **save time and labor cost** for someone who wo
 * Upload images in batch.
 
 ## Demonstration
-![demo gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_1064_636.gif)
+#### Get API labels
+![api gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_upload.gif)
+
+#### Modify labels
+![modify gif](https://label-me.s3.ap-northeast-1.amazonaws.com/github-readme-images/feature_modify.gif)
+
 ## Contact
 Jun Hong Lin  
 Email: m81923@gmail.com
