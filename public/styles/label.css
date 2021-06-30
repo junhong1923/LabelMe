@@ -31,7 +31,6 @@ header #logo:hover {
   margin-top: 10px;
   display: flex;
   justify-content: space-between;
-  /* justify-content: space-evenly; */
 }
 
 #myImg {
@@ -49,12 +48,7 @@ header #logo:hover {
   line-height: 1.5;
   font-size: 1rem;
   margin-left: 10px;
-  /* transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; */
 }
-
-/* .container .tool-bar {
-  margin-bottom: 3rem;
-} */
 
 .container .container .btn-group label {
   align-items: center;
@@ -77,10 +71,7 @@ header #logo:hover {
 }
 
 #canvas {
-  /* display: inline-block; */
-  /* justify-content: center; */
   border:1px solid #000000;
-  /* margin-top: 3rem; */
 }
 
 .canvas {
@@ -88,39 +79,21 @@ header #logo:hover {
 }
 
 .canvas .board {
-  /* font-size: 10px; */
-  /* font-weight: 3px; */
-  /* width: 225px; */
   width: 250px;
   height: 700px;
   padding-left: 3px;
-  /* border: 1px blue solid; */
-  /* display: inline-block; */
   align-items: center;
   justify-content: center;
 }
-
-/* .canvas .tab-content { */
-  /* border: 1px solid #b0c4de; */
-  /* box-shadow: 3px 3px 3px 3px #cccccc; */
-/* } */
 
 .canvas .board table caption {
   padding-left: 3.5rem;
 }
 
-/* .canvas .label-pane {
-  display: flex;
-} */
-
 .canvas .label-pane .label-pane-title{
   display: flex;
   justify-content: space-between;
 }
-
-/* .canvas .label-pane .title{
-  flex-grow: 1;
-} */
 
 .canvas .label-pane .label-pane-content {
   height: 320px;
@@ -128,7 +101,6 @@ header #logo:hover {
 
 .canvas .label-pane .label-btn {
   display: flex;
-  /* padding: 4px; */
   border-radius: 3px;
   cursor: pointer;
 }
@@ -141,7 +113,6 @@ header #logo:hover {
   width: 165px;
   padding-left: 8px;
   overflow: hidden;
-  /* flex-grow: 1; */
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -153,7 +124,6 @@ header #logo:hover {
 .canvas .label-pane .add-btn {
   margin-top: 3px;
   margin-left: 65px;
-  /* padding-left: 70px; */
 }
 
 .canvas .table thead {
@@ -170,8 +140,6 @@ header #logo:hover {
   display: flex;
   flex-direction: column;
   padding: 3px;
-  /* justify-content: center; */
-  /* align-items: center; */
 }
 
 .result button {

@@ -14,10 +14,9 @@ let file;
 const uploadImg = {};
 let drawType;
 let [lastX, lastY] = [0, 0];
-let isOrigin = true;
+const isOrigin = true;
 const signout = document.querySelector("#signout");
 let labels;
-// let inference; // ???
 const colorArr = ["green", "rgba(31,119,180,1)", "rgba(214,39,40,1)", "rgba(148,103,189,1)", "rgba(23,190,207,1)", "rgb(128,0,128,1)", "coral", "hotpink", "rgba(140,86,75,1)", "rgba(255,152,150,1)"];
 const tagsDiv = document.querySelector("#tags");
 let selectedTag;
@@ -37,55 +36,36 @@ const toggleMode = (e, mode) => {
   if (mode === modes.pan) {
     if (currentMode === modes.pan) { // 取消拖拉移動整個畫布
       currentMode = "";
-      console.log("取消拖拉移動整個畫布");
+      // console.log("取消拖拉移動整個畫布");
     } else { // 拖拉移動整個畫布
       currentMode = modes.pan;
       canvas.isDrawingMode = false;
-      // canvas.renderAll();
-      console.log("拖拉移動整個畫布");
+      // console.log("拖拉移動整個畫布");
     }
   } else if (mode === modes.drawing) { // draw line
     if (currentMode === modes.drawing) { // 取消畫畫模式
       currentMode = "";
       canvas.isDrawingMode = false;
-      // canvas.renderAll();
       e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle";
     } else { // 畫畫模式
       canvas.freeDrawingBrush.color = "red";
       canvas.freeDrawingBrush.width = 3;
       currentMode = modes.drawing;
       canvas.isDrawingMode = true;
-      // canvas.renderAll();
       e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle active";
     }
   } else if (mode === modes.bounding) {
     if (currentMode === modes.bounding) { // 取消拉框模式
       currentMode = "";
       canvas.isDrawingMode = false;
-      // canvas.renderAll();
       canvas.getObjects().forEach(obj => { obj.selectable = true; });
     } else { // 拉框模式
-      // canvas.freeDrawingBrush.color = "green";
-      // canvas.freeDrawingBrush.width = 3;
       currentMode = modes.bounding;
       canvas.isDrawingMode = false;
       canvas.getObjects().forEach(obj => { obj.selectable = false; });
     }
-  } else if (mode === modes.poly) {
-    if (currentMode === modes.poly) { // 取消poly模式
-      currentMode = "";
-      canvas.isDrawingMode = false;
-      // canvas.renderAll();
-      e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle";
-    } else { // poly模式
-      canvas.freeDrawingBrush.color = "blue";
-      canvas.freeDrawingBrush.width = 3;
-      currentMode = modes.poly;
-      canvas.isDrawingMode = true;
-      e.parentNode.parentNode.previousElementSibling.className = "btn btn-secondary dropdown-toggle active";
-    }
   }
-  console.log(mode, currentMode);
+  // console.log(mode, currentMode);
 };
 
 const setPanEvents = (canvas) => {
@@ -97,14 +77,11 @@ const setPanEvents = (canvas) => {
       const delta = new fabric.Point(mEvent.movementX, mEvent.movementY);
       canvas.relativePan(delta);
     } else if (mousePressed && currentMode === modes.drawing) {
-      // canvas.isDrawingMode = true;
-      // canvas.renderAll();
     } else if (mousePressed && currentMode === modes.bounding) {
       canvas.setCursor("crosshair");
       canvas.renderAll();
     } else if (currentMode === modes.bounding) {
       canvas.setCursor("crosshair");
-      // maybe 加入十字座標虛線？
       canvas.renderAll();
     }
 
@@ -147,24 +124,19 @@ const setPanEvents = (canvas) => {
           }
         }
         canvas.renderAll();
-        // canvas.fire("object:modified");
-        // state = canvas.toJSON();
-        // undo.push(state);
       }
     }
   });
 
   canvas.on("mouse:down", (event) => {
-    // console.log(event.target); // type
     mousePressed = true;
     [lastX, lastY] = [event.pointer.x, event.pointer.y];
-    console.log("CurrentMode:", currentMode);
+    // console.log("CurrentMode:", currentMode);
     if (currentMode === modes.pan) {
       canvas.setCursor("grab");
       canvas.renderAll();
     }
-    // canvas.renderAll();
-    // state = canvas.toJSON();
+
     canvasObjCount = canvas.getObjects().length;
   });
 
@@ -173,50 +145,32 @@ const setPanEvents = (canvas) => {
     mouseClickId += 1;
     canvas.setCursor("default");
     canvas.renderAll();
-    // state = canvas.toJSON();
 
     if (canvasObjCount !== canvas.getObjects().length) { // bug: label in bounding then it would not add in table
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
-      // console.log(canvas.getObjects()[canvas.getObjects().length - 1]);
 
       // bug: imgOwner目前從labels[0]取得，但如果圖還沒有任何標註，則擁有者是誰？要去哪抓？ sol:一開始回傳labels也要帶owner
-      // 如果是目前使用者自己上傳的話，就是該使用者
-      // const imgOwner = labels[0] ? labels[0].owner : userId; // if no owner in labels, then assign current userId
-      let imgOwner; // maybe global is better?
+      let imgOwner;
       if (labels === undefined) {
         imgOwner = userId;
-        console.log(imgOwner, labels);
+        // console.log(imgOwner, labels);
       } else if (labels[0].owner) {
         imgOwner = labels[0].owner;
-        // console.log(imgOwner);
-        // console.log(labels);
       }
-      // Labeler should be userName instead of userId
+
       genLabelTable(imgOwner, userName, latestObj.labelId, latestObj.tag, "your", remove = true);
     }
   });
 };
 
 const clearCanvas = (canvas, state) => {
-  // state.val = canvas.toSVG();
   canvas.getObjects().forEach((obj) => {
     if (obj !== canvas.backgroundImage) {
       canvas.remove(obj);
     }
   });
 };
-
-// const restoreCanvas = (canvas, state) => {
-//   if (state.val) {
-//     canvas.clearCanvas();
-//     fabric.loadSVGFromString(state.val, objects => {
-//       console.log(objects);
-//       canvas.add(...objects);
-//       canvas.requestRenderAll();
-//     });
-//   }
-// };
 
 const groupObjects = (canvas, group, shouldGroup) => {
   if (shouldGroup) {
@@ -239,7 +193,6 @@ const groupObjects = (canvas, group, shouldGroup) => {
 
 const canvas = initCanvas("canvas");
 canvas.hoverCursor = "pointer";
-// const svgState = {};
 let mousePressed = false;
 let mouseClickId = 0;
 const group = {};
@@ -262,7 +215,6 @@ const shareBtn = document.getElementById("share");
 // render uploaded image to canvas
 inputFile.addEventListener("change", (e) => {
   clearCanvas(canvas);
-  // console.log(e);
 
   file = inputFile.files[0];
   reader.readAsDataURL(file);
@@ -277,7 +229,7 @@ reader.addEventListener("load", () => { // Loading Image
       top: (canvas.height - img.height) / 2,
       selectable: false
     });
-    // canvas.add(img);
+
     canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
     canvas.requestRenderAll();
 
@@ -306,7 +258,7 @@ shareBtn.addEventListener("click", (e) => {
 });
 
 window.onload = (e) => {
-  // verify token authentication first
+  // verify token authentication
   fetch("/api/1.0/user/auth", {
     method: "POST",
     headers: { authorization: `Bearer ${token}` }
@@ -320,35 +272,27 @@ window.onload = (e) => {
     })
     .then(async (res) => {
       if (res.error) {
-        // alert(res.error);
         Swal.fire(res.error);
         window.location.assign("/html/welcome.html");
       } else {
-        // we have userId here: res.id
         userId = res.id;
         userName = res.name;
-        console.log(res);
 
         // if image_id, image_path in url then render that image to canvas
         const url = new URL(location.href);
         imageId = url.searchParams.get("id");
         imageSrc = url.searchParams.get("src");
         if (imageSrc && imageId) {
-          // 選用別人上傳的
           renderImageSrc(imageSrc);
-          // labels = await getImageLabels(res.id, imageId);
+
           data = await getImageLabels(res.id, imageId);
-          console.log(data);
+          // console.log(data);
           labels = data.userLabel;
           const inference = data.apiLabel;
-          // console.log("labels:");
-          // console.log(labels);
 
           if (inference !== undefined && inference.length > 0) {
             const transformArr = transformCoordinates(inference);
             labels = [...labels, ...transformArr];
-          } else {
-            console.log("There is no api inference label...");
           }
 
           if (labels !== undefined && !labels[0].msg) {
@@ -391,7 +335,6 @@ window.onload = (e) => {
 
   const profile = document.querySelector("#profile");
   profile.addEventListener("click", (e) => {
-    // console.log(e.target);
     fetch("/api/1.0/user/profile", {
       method: "GET",
       headers: { authorization: `Bearer ${token}` }
@@ -402,7 +345,6 @@ window.onload = (e) => {
       .then((res) => {
         const date = new Date();
         const monthName = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep", "Oct.", "Nov.", "Dec."];
-        console.log(res);
         Swal.fire({
           title: "User Profile",
           html: `
@@ -422,16 +364,12 @@ window.onload = (e) => {
 const submitted = (event) => {
   event.preventDefault();
   const FORM = document.forms.namedItem("uploadImage");
-  // 5/24 cannot get share value inside formData...
-  // console.log(event.target.elements[1].value);
   const formData = new FormData(FORM);
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/1.0/image/upload");
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.onreadystatechange = () => {
-    // console.log(xhr);
     if (xhr.readyState === 4) {
-      console.log(JSON.parse(xhr.response));
       if (JSON.parse(xhr.response).inference) {
         const inference = JSON.parse(xhr.response).inference;
         Swal.fire({
@@ -441,14 +379,12 @@ const submitted = (event) => {
           position: "top-end",
           showConfirmButton: false,
           timer: 3500
-          // timerProgressBar: true
         });
         if (!inference.errno) {
           renderApiLabels(inference);
-        } else console.log("vision api error...");
+        }
       }
     } else if (xhr.responseText === "LIMIT_FILE_SIZE") {
-      // console.log(xhr.readyState, xhr.response);
       Swal.fire("Sorry, your image size is over limited 2MB.");
     } else if (xhr.responseText === "Out of 2GB usage.") {
       Swal.fire("Sorry, " + xhr.responseText);
@@ -458,21 +394,19 @@ const submitted = (event) => {
 };
 
 const commitLabel = (canvas) => {
-  // console.log(labels);
-  // console.log(canvas.toDataURL("image/jpeg")); // base64
   canvasJSON = canvas.toJSON();
 
   const coordinates = [];
   canvasJSON.objects.forEach((arr, idx) => {
-    const labelId = canvas.getObjects()[idx].labelId; // 新畫的id長怎麼樣？ 只有數字的話會錯
+    const labelId = canvas.getObjects()[idx].labelId;
     const tag = canvas.getObjects()[idx].tag;
     const scale = { X: arr.scaleX, Y: arr.scaleY };
     coordinates.push({
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width, height: arr.height, scale
     });
   });
-  console.log({ before: labels, after: coordinates });
-  // console.log(coordinates);
+  // console.log({ before: labels, after: coordinates });
+
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
     body: JSON.stringify({
@@ -482,8 +416,6 @@ const commitLabel = (canvas) => {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
   })
     .then((res) => {
-      console.log("Response status: ", res.status);
-      // 得到一個 ReadableStream 的物件
       if (res.status === 200) {
         return res.json();
       } else if (res.status === 401) {
@@ -495,7 +427,6 @@ const commitLabel = (canvas) => {
     })
     .then((res) => {
       if (res) {
-        console.log(res);
         if (res.labeler) {
           Swal.fire({
             toast: true,
@@ -571,7 +502,6 @@ const deleteLabel = (labelId) => {
         }
       })
       .then((res) => {
-        console.log(res);
         resolve(res);
       })
       .catch(err => reject(err));
@@ -582,7 +512,6 @@ const transformCoordinates = (inference) => {
   const renderArr = [];
 
   inference.forEach(obj => {
-    // const id = obj.id; // commit label時會帶 canvas.getObjs()裡的labelId，所以要區分
     const id = `inference_${obj.id}`;
     const labeler = "ai";
     const imgOwner = userId;
@@ -593,15 +522,14 @@ const transformCoordinates = (inference) => {
       top: obj.boundingPoly.normalizedVertices[0].y * uploadImg.height + (canvas.height - uploadImg.height) / 2,
       width: (obj.boundingPoly.normalizedVertices[1].x - obj.boundingPoly.normalizedVertices[0].x) * uploadImg.width,
       height: (obj.boundingPoly.normalizedVertices[2].y - obj.boundingPoly.normalizedVertices[1].y) * uploadImg.height
-    }; // 6/14 imageId 可以改從inference的imageId取
+    };
     renderArr.push({ id, image_id: parseInt(imageId), owner: imgOwner, labeler: labeler, tag: inferenceTag, score: inferenceScore, coordinates_xy: { x: inferenceCoordiantes.left, y: inferenceCoordiantes.top }, coordinates_wh: { x: inferenceCoordiantes.width, y: inferenceCoordiantes.height } });
   });
   return renderArr;
 };
 
 const renderApiLabels = (inference) => {
-  // console.log(inference);
-  // 一次整理好, render
+  // 一次整理好再render
   const renderInput = transformCoordinates(inference);
   labels = renderInput;
   renderImageLabels(renderInput, renderTags = true, userId);
@@ -611,9 +539,8 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
   // variables for render label list table
   tableBody.innerHTML = "";
 
-  // console.log(labels);
   const imgOwner = labels[0].owner;
-  // 6/2 get tag and color map
+  // get tag and color map
   const tagSet = new Set();
   labels.forEach(arr => { tagSet.add(arr.tag); });
 
@@ -621,11 +548,10 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
   Array.from(tagSet).forEach(function (value, idx) {
     tagColorMap[value] = colorArr[idx];
   });
-  // console.log(tagSet, tagColorMap);
+
   // render tag using colorSet to avoid duplicate
   if (renderTags) {
     for (const key in tagColorMap) {
-      // console.log(key, tagColorMap[key]);
       LabelTagsDOM = genLabelTagsDOM(key, tagColorMap[key]);
       tagsDiv.insertBefore(LabelTagsDOM, addTagBtn);
     }
@@ -673,7 +599,6 @@ const renderImageLabels = (labels, renderTags = true, userId) => {
 const genLabelTable = (imgOwner, labeler, labelId, tag, rowValue, remove = false) => {
   let tempHtml;
   if (userId === imgOwner || remove === true) {
-    // console.log("api can be remove");
     tempHtml = `<td><img id=${labelId} src="../images/icons/trash.svg" alt="remove" width="25px" height="25px"></td>`;
   } else {
     tempHtml = `<td><img id=${labelId} src="../images/icons/block.svg" alt="forbidden" width="25px" height="25px"></td>`;
@@ -809,7 +734,6 @@ tagsDiv.onclick = (e) => {
 
 // remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
 tableBody.onclick = (e) => {
-  // console.log(e.target);
   let labelId;
   if (e.target.id.includes("inference")) {
     labelId = e.target.id;
@@ -818,7 +742,7 @@ tableBody.onclick = (e) => {
   } else {
     labelId = e.target.id;
   }
-  console.log(labelId);
+
   if (e.target.alt === "remove") {
     Swal.fire({
       title: "Are you sure?",
@@ -830,11 +754,9 @@ tableBody.onclick = (e) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        // console.log("tableBody onclick, delete label...");
-
         // remove obj on canvas
         canvas.getObjects().forEach(obj => {
-          // AI預測的也要能刪除
+          // ai inference labels are able to be deleted
           if (obj.labelId === labelId) {
             canvas.remove(obj);
           }
@@ -876,34 +798,27 @@ tableBody.onclick = (e) => {
 
 const saveFile = () => {
   const link = document.getElementById("download");
-  // 5/26 如果是從主頁點近來開始的，會沒有file.name。可能要從url去切出檔名
   let downloadFileName;
-  console.log(file);
+
   if (file) {
-    // downloadFileName = `labeled_${file.name}`;
     downloadFileName = `labeled_${file.name.split(".")[0]}.json`;
   } else {
     // get name of img url
-    // downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1]}`;
     downloadFileName = `labeled_${imageSrc.split("/")[imageSrc.split("/").length - 1].split(".")[0]}.json`;
   }
   console.log(downloadFileName);
 
-  // 下載json檔
+  // download labeled json file
   const blob = new Blob([JSON.stringify({ data: canvas.getObjects() })]);
 
   link.download = downloadFileName;
   link.href = URL.createObjectURL(blob);
-  // link.href = canvas.toDataURL("image/jpeg"); // Image format of the output
   link.click();
   const currState = canvas.toJSON();
-  console.log("currState of saving:");
-  console.log(currState);
 };
 
 const zoomInBtn = document.getElementById("zoomInBtn");
 const zoomOutBtn = document.getElementById("zoomOutBtn");
-// const zoomFitBtn = document.getElementById("zoomFitBtn");
 const showZoom = document.getElementById("zoom");
 
 const center = canvas.getCenter();
@@ -917,53 +832,12 @@ function setZoom (zoom, point = { x: center.left, y: center.top }) {
 
 zoomInBtn.addEventListener("click", () => setZoom(0.1));
 zoomOutBtn.addEventListener("click", () => setZoom(-0.1));
-// canvas.on("mouse:wheel", (event) => {
-//   const deltaY = event.e.deltaY;
-//   const newZoom = deltaY / 1000;
-//   setZoom(newZoom, { x: event.e.offsetX, y: event.e.offsetY });
-// });
-
-// zoomFitBtn.onclick = () => {
-//   canvas.zoomToPoint({ x: canvas.width, y: canvas.height }, 1);
-// };
-
-// 5/17
-const invertColor = () => {
-  // 抓出像素 (canvas 面對本機的影像檔案，會因為安全性的考量，不讓程式去取得圖片中的像素資料，就無法做濾鏡的處理。)
-  const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height); // ImageData 物件
-  const data = pixels.data; // 存放所有像素資訊的陣列。 一個像素佔據4個資料(bytes) -> r,g,b,alpha (範圍0~255)
-  const tempData = data;
-  if (isOrigin) {
-    console.log(1);
-    for (let i = 0; i < data.length; i += 4) {
-      // data[i] = 255 - data[i]; // red
-      // data[i + 1] = 255 - data[i + 1]; // green
-      // data[i + 2] = 255 - data[i + 2]; // blue
-
-      const arg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      tempData[i] = arg;
-      tempData[i + 1] = arg;
-      tempData[i + 2] = arg;
-      isOrigin = false;
-
-    //   pixels.data = tempData;
-    }
-  } else {
-    console.log(2);
-    console.log(data === tempData);
-    isOrigin = true;
-    pixels.data = data;
-  }
-
-  canvas.getContext("2d").putImageData(pixels, 0, 0);
-};
 
 // 當 canvas 中的物件被修改時，先將之前的 state push 進入 undo 裡面，再把目前的 state 儲存起來
 canvas.on("object:modified", e => {
   undo.push(state);
   state = JSON.stringify(canvas);
   redo.length = 0;
-  console.log("modified");
 });
 
 // 把最後一筆被修改的內容透過 pop 拿出來讀取，再將 state 更改為上一步的狀態。
@@ -1004,7 +878,7 @@ canvas.on("mouse:over", (e) => {
     hoverTag = e.target.tag;
     hoverLabelId = e.target.labelId;
     const xy = { left: e.target.left, top: e.target.top };
-    // console.log(hoverTag, hoverLabelId);
+
     const text = new fabric.Text(hoverTag, {
       left: xy.left + e.target.width / 2 - 15,
       top: xy.top,
@@ -1042,50 +916,7 @@ canvas.on("mouse:out", (e) => {
   }
 });
 
-// get selected canvas object
-// canvas.on("selection:created", (e) => {
-//   console.log(e.target);
-// });
-
 signout.onclick = () => {
   localStorage.removeItem("token");
   window.location.assign("/");
 };
-
-// const canvas = this.$refs.drawCanvas;
-// // 將 canvas 傳入
-// const fabricCanvas = new fabric.Canvas(canvas);
-// // 從 url 讀取圖片
-// fabric.Image.fromURL(img2, img => {
-//   const oImg = img.set({
-//     // 這邊可以設定上下左右距離、角度、寬高等等
-//     left: 0
-//     // top: 100
-//     // angle: 15,
-//     // width: 500,
-//     // height: 500
-//   });
-//   // 將圖片縮放到寬高
-//   oImg.scaleToWidth(cw);
-//   oImg.scaleToHeight(ch);
-//   // 記得要加進入才會顯示
-//   fabricCanvas.add(oImg);
-//   // 使用亮度濾鏡
-//   const filter = new fabric.Image.filters.Brightness({
-//     brightness: 0.5
-//   });
-//   oImg.filters.push(filter);
-//   oImg.applyFilters();
-// });
-
-// const circle = new fabric.Circle({
-//   radius: 80, fill: "green", left: 100, top: 100
-// });
-// const triangle = new fabric.Triangle({
-//   width: 120, height: 180, fill: "blue", left: 300, top: 200
-// });
-// const editText = new fabric.IText("雙擊我編輯", {
-//   top: 400,
-//   left: 400
-// });
-// fabricCanvas.add(circle, triangle, editText);

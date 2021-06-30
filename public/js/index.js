@@ -19,10 +19,9 @@ const getImageData = (type, userId, status) => {
     .then((res) => {
       if (res.status === 200) {
         return res.json();
-      } else { console.log(res.status); }
+      }
     })
     .then((res) => {
-      // console.log(res);
       if (!res.error) {
         imageRow.innerHTML = "";
 
@@ -138,8 +137,6 @@ window.onload = (e) => {
             imageRow.innerHTML = "";
             Swal.fire("Login to see private images.");
             // disable filter tab btn
-
-            console.log(res);
           } else {
             userId = res.id;
             getImageData(filterType, userId);
@@ -152,8 +149,6 @@ window.onload = (e) => {
 
   selectedTabContent.addEventListener("click", (e) => {
     if (e.target.type === "button") {
-    //   console.log(e.target.parentNode.id);
-
       for (let i = 0; i < e.target.parentNode.children.length; i++) {
         if (e.target.parentNode.children[i].className.includes("active")) {
           e.target.parentNode.children[i].className = "btn btn-outline-dark";
@@ -184,7 +179,6 @@ window.onload = (e) => {
 
   const profile = document.querySelector("#profile");
   profile.addEventListener("click", (e) => {
-    // console.log(e.target);
     fetch("/api/1.0/user/profile", {
       method: "GET",
       headers: { authorization: `Bearer ${token}` }
@@ -195,7 +189,6 @@ window.onload = (e) => {
       .then((res) => {
         const date = new Date();
         const monthName = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep", "Oct.", "Nov.", "Dec."];
-        console.log(res);
         Swal.fire({
           title: "User Profile",
           html: `
@@ -213,17 +206,13 @@ window.onload = (e) => {
 };
 
 const dragStart = (e) => {
-  console.log("dragStart");
-  console.log(e.target.id);
   e.dataTransfer.setData("text/plain", e.target.id);
 };
 
 const dropped = (e) => {
-  console.log("dropped");
   cancelDefault(e);
   const id = e.dataTransfer.getData("text/plain");
-//   e.target.appendChild(document.querySelector("#" + id));
-  // 5/31 maybe call backend api to store imgId into particular folder
+  // to-do: call backend api to store imgId into particular folder
 };
 
 const cancelDefault = (e) => {
@@ -235,6 +224,4 @@ const cancelDefault = (e) => {
 signout.onclick = () => {
   localStorage.removeItem("token");
   window.location.assign("/");
-  // const avatar = document.querySelector("#avatar");
-  // avatar.src = "../images/member.png";
 };
