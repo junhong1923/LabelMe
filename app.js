@@ -1,6 +1,7 @@
 const path = require("path");
 const multer = require("multer");
 require("dotenv").config();
+const { rateLimiterRoute } = require("./util/ratelimiter");
 const port = process.env.PORT;
 
 // Express Initialization
@@ -18,6 +19,7 @@ app.use(cors());
 
 // API routes
 app.use("/api/" + process.env.API_VERSION,
+  rateLimiterRoute,
   [
     require("./server/routes/user_route"),
     require("./server/routes/image_route"),
