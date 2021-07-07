@@ -19,7 +19,7 @@ const signUp = async (req, res) => {
 
   name = validator.escape(name);
 
-  const result = await User.signUp(name, User.USER_ROLE.USER, email, password);
+  const result = await User.signUp(name, User.role.USER, email, password);
   if (result.error) {
     res.status(403).send({ error: result.error });
     return;

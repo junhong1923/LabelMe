@@ -21,7 +21,7 @@ const getImages = (type, userId, status) => {
     const ImgaeQuery = `SELECT image_id, status, image_path, tag, share, private_folder FROM original_image ${condition.sql} ORDER BY image_id DESC`;
     pool.query(ImgaeQuery, condition.binding, (err, result) => {
       if (err) reject(err);
-      if (result.length > 0) {
+      if (result && result.length > 0) {
         resolve(result);
       } else {
         resolve({ error: "Image Not Found" });

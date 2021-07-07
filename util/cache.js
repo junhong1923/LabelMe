@@ -7,7 +7,9 @@ client.on("ready", function () {
 });
 
 client.on("error", function (error) {
-  console.log(error);
+  if (process.env.NODE_ENV === "production") {
+    console.log(error);
+  }
 });
 
 // api is asynchronous => promise

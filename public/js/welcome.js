@@ -45,17 +45,29 @@ loginForm.onsubmit = (e) => {
         localStorage.setItem("token", jsonData.data.access_token);
         window.location.assign("/");
       } else {
-        alert(jsonData.error);
+        Swal.fire({
+          icon: "error",
+          text: jsonData.error
+        });
       }
     }).catch((err) => { console.log(err); });
 };
 
 signupForm.onsubmit = (e) => {
   e.preventDefault();
-  console.log(e.target);
 
-  if (e.target.elements[2].value !== e.target.elements[3].value) {
-    alert("Password is not the same.");
+  if (!e.target.elements[1].value.includes("@")) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Wrong Email."
+    });
+  } else if (e.target.elements[2].value !== e.target.elements[3].value) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Password is not the same."
+    });
   } else {
     const data = {
       provider: "native",
@@ -81,7 +93,11 @@ signupForm.onsubmit = (e) => {
           localStorage.setItem("token", jsonData.data.access_token);
           window.location.assign("/");
         } else {
-          alert(jsonData.error);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: jsonData.error
+          });
         }
       }).catch((err) => { console.log(err); });
   }

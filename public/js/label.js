@@ -36,13 +36,11 @@ const toggleMode = (e, mode) => {
   if (mode === modes.pan) {
     if (currentMode === modes.pan) { // 取消拖拉移動整個畫布
       currentMode = "";
-      // console.log("取消拖拉移動整個畫布");
     } else { // 拖拉移動整個畫布
       currentMode = modes.pan;
       canvas.isDrawingMode = false;
-      // console.log("拖拉移動整個畫布");
     }
-  } else if (mode === modes.drawing) { // draw line
+  } else if (mode === modes.drawing) {
     if (currentMode === modes.drawing) { // 取消畫畫模式
       currentMode = "";
       canvas.isDrawingMode = false;
@@ -65,7 +63,6 @@ const toggleMode = (e, mode) => {
       canvas.getObjects().forEach(obj => { obj.selectable = false; });
     }
   }
-  // console.log(mode, currentMode);
 };
 
 const setPanEvents = (canvas) => {
@@ -131,7 +128,7 @@ const setPanEvents = (canvas) => {
   canvas.on("mouse:down", (event) => {
     mousePressed = true;
     [lastX, lastY] = [event.pointer.x, event.pointer.y];
-    // console.log("CurrentMode:", currentMode);
+
     if (currentMode === modes.pan) {
       canvas.setCursor("grab");
       canvas.renderAll();
@@ -146,15 +143,13 @@ const setPanEvents = (canvas) => {
     canvas.setCursor("default");
     canvas.renderAll();
 
-    if (canvasObjCount !== canvas.getObjects().length) { // bug: label in bounding then it would not add in table
+    if (canvasObjCount !== canvas.getObjects().length) {
       // render the latest object to label table
       const latestObj = canvas.getObjects()[canvas.getObjects().length - 1];
 
-      // bug: imgOwner目前從labels[0]取得，但如果圖還沒有任何標註，則擁有者是誰？要去哪抓？ sol:一開始回傳labels也要帶owner
       let imgOwner;
       if (labels === undefined) {
         imgOwner = userId;
-        // console.log(imgOwner, labels);
       } else if (labels[0].owner) {
         imgOwner = labels[0].owner;
       }
@@ -200,7 +195,7 @@ let state = canvas.toJSON();
 let currentMode;
 
 const modes = {
-  pan: "pan", // 拖拉移動畫布
+  pan: "pan", // drag whole canvas
   drawing: "drawing",
   bounding: "bounding",
   poly: "poly"
@@ -405,7 +400,6 @@ const commitLabel = (canvas) => {
       imageId: parseInt(imageId), type: "bounding", tag, labelId, x: arr.left, y: arr.top, width: arr.width, height: arr.height, scale
     });
   });
-  // console.log({ before: labels, after: coordinates });
 
   fetch("/api/1.0/label/coordinates", {
     method: "POST",
@@ -732,7 +726,7 @@ tagsDiv.onclick = (e) => {
   }
 };
 
-// remove label, and cannot undo，但應該改成只有owner才能刪，其他人只能隱藏
+// remove label, and cannot undo
 tableBody.onclick = (e) => {
   let labelId;
   if (e.target.id.includes("inference")) {

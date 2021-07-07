@@ -56,15 +56,15 @@ const signUp = (name, roleId, email, password) => {
 const nativeSignIn = async (email, password) => {
   return new Promise((resolve, reject) => {
     try {
-      // 1. check email exists or not
+      // check email exists or not
       pool.query("SELECT * FROM user WHERE email = ?", [email], (err, result) => {
         if (err) throw err;
-        // console.log(result);
+
         if (result.length === 0) {
           resolve({ error: "You don't have an account, please signup.", status: 403 });
           return;
         }
-        // 2. verify pwd, update login time, and then genJWT for this signin
+        // verify pwd, update login time, and then genJWT for this signin
         if (result[0].password === getHashed(password)) {
           const loginAt = new Date();
           updateLoginTime(loginAt, result[0].id);
@@ -137,6 +137,7 @@ const getUserCapacity = (userId) => {
 };
 
 module.exports = {
+  role: USER_ROLE,
   signUp,
   nativeSignIn,
   getUserData,
